@@ -2,11 +2,11 @@
 -- Users, dogs, swipes, matches, messages
 
 CREATE TABLE IF NOT EXISTS users (
-    user_id            BIGSERIAL     PRIMARY KEY,   -- bigserial is used automatically to give a unique id for each user, also gives us a bigger range of values
+    user_id       BIGSERIAL     PRIMARY KEY,   -- bigserial is used automatically to give a unique id for each user, also gives us a bigger range of values
     username      VARCHAR(64)   NOT NULL UNIQUE,
     password_hash VARCHAR(255)  NOT NULL,
     email         VARCHAR(255)  NOT NULL UNIQUE,
-    user_age           INTEGER      CHECK (user_age IS NULL OR (user_age > 0 AND user_age <= 120)), -- age cannot be less than 0 or more than 120
+    user_age      INTEGER      CHECK (user_age IS NULL OR (user_age > 0 AND user_age <= 120)), -- age cannot be less than 0 or more than 120
     description   TEXT, -- TEXT is used for long text fields.
     photo_url     VARCHAR(512),
     max_distance  DOUBLE PRECISION NOT NULL DEFAULT 25.0 CHECK (max_distance > 0), -- max distance cannot be less then 0, default val will be set to 25
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS dogs (
     description TEXT,
     photo_url   VARCHAR(512),
     created_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, dog_name)
 );
 
@@ -65,8 +66,6 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS idx_users_lat_lng ON users (lat, lng)
     WHERE lat IS NOT NULL AND lng IS NOT NULL;
 
--- Lookups by dog owner
-CREATE INDEX IF NOT EXISTS idx_dogs_user_id ON dogs (user_id);
 
 -- "Who did I swipe?" (sender side) and "who swiped on me?" (target side, used in match detection)
 CREATE INDEX IF NOT EXISTS idx_swipes_sender ON swipes (sender_id);

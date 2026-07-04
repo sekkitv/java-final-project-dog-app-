@@ -12,7 +12,7 @@
 INSERT INTO users (username, password_hash, email, user_age, description, max_distance, lat, lng)
 VALUES
     ('maya_tlv',     'PLACEHOLDER', 'maya@example.com',     28, 'Coffee & corgis. Love beach weekends.',   30, 32.0809, 34.7806),
-    ('yoni',     'PLACEHOLDER', 'yoni@example.com',     32, 'Engineer, dog dad, fetch enthusiast.',    25, 32.0871, 34.7742),
+    ('yoni_dad',     'PLACEHOLDER', 'yoni@example.com',     32, 'Engineer, dog dad, fetch enthusiast.',    25, 32.0871, 34.7742),
     ('noa_paws',     'PLACEHOLDER', 'noa@example.com',      26, 'Rescue advocate. Slow walks, lots of treats.', 20, 32.0923, 34.7688),
     ('amir_gold',    'PLACEHOLDER', 'amir@example.com',     35, 'Golden retriever dad. Fluent in ball-throwing.', 35, 32.0755, 34.7851),
     ('lily_shi',     'PLACEHOLDER', 'lily@example.com',     29, 'Shiba mom. Independent dog, social human.', 15, 32.1012, 34.7910),
