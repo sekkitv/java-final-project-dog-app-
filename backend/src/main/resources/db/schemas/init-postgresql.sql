@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id       BIGSERIAL     PRIMARY KEY,   -- bigserial is used automatically to give a unique id for each user, also gives us a bigger range of values
     username      VARCHAR(64)   NOT NULL UNIQUE,
     password_hash VARCHAR(255)  NOT NULL,
+    salt          VARCHAR(64)   NOT NULL,
     email         VARCHAR(255)  NOT NULL UNIQUE,
     user_age      INTEGER      CHECK (user_age IS NULL OR (user_age > 0 AND user_age <= 120)), -- age cannot be less than 0 or more than 120
     description   TEXT, -- TEXT is used for long text fields.
