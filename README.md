@@ -1,1 +1,1 @@
-# java-final-project-dog-app-
+# ZuzDog - final project in java course
