@@ -16,4 +16,3 @@ From the project root:
 This script will:
 1. Run `init-postgresql.sql` (5 tables + indexes)
 2. Run `mock-data.sql` (10 Israeli users, dogs, swipes, matches, messages)
-
