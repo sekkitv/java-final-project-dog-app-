@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
+// this annotaion is responsible for making this class a spring bean(it creates an instance of it) , it tells us its responsible for database operations.
+// with this when we are using spring boot we can inject this class just using @Autowired annotation instead of creating an instance of it manually.
 @Repository
 public class DogDao {
 
@@ -53,6 +56,10 @@ public class DogDao {
                         "photo_url")
                 .usingGeneratedKeyColumns("dog_id");
     }
+
+    // All of the methods below are responsible for querying the database and operations that we will do on the dog table.
+
+
 
     public Optional<Dog> findPrimaryByUserId(long userId) {
         List<Dog> rows = jdbcTemplate.query(

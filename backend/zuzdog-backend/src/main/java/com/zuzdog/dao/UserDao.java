@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// this annotaion is responsible for making this class a spring bean , it tells us its responsible for database operations.
+// this annotaion is responsible for making this class a spring bean(it creates an instance of it) , it tells us its responsible for database operations.
+// with this when we are using spring boot we can inject this class just using @Autowired annotation instead of creating an instance of it manually.
 @Repository
 public class UserDao {
 
@@ -44,8 +45,11 @@ public class UserDao {
         return u;
     };
 
+    // because of the annotation of @Repository it is connected to the jdbctempalte
+    // and it is already connected to the database so we can use it to query the db.
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert insertActor;
+
 
     public UserDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -64,6 +68,8 @@ public class UserDao {
                         "lng")
                 .usingGeneratedKeyColumns("user_id");
     }
+
+    // All of the methods below are responsible for querying the database and operations that we will do on the user table.
 
     public Optional<User> findById(long userId) {
         List<User> rows = jdbcTemplate.query(
