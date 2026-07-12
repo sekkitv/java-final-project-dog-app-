@@ -1,7 +1,6 @@
 package com.zuzdog.security;
 
 import org.springframework.stereotype.Component;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
