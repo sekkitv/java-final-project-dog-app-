@@ -14,5 +14,5 @@ public class JdbcConfig {
     @Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+        }
     }
-}
