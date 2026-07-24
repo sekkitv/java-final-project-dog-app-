@@ -5,7 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 import java.security.SecureRandom;
-import java.util.HexFormat;
+import java.util.HexFormat; //used for hex encoding 
 
 
 @Component
@@ -14,6 +14,7 @@ public class PasswordHasher {
     private static final int BCRYPT_STRENGTH = 12;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
     private final SecureRandom secureRandom = new SecureRandom();
+    // securityProperties is a spring bean that holds external values from application.
     private final SecurityProperties securityProperties;
 
     // Constructor to inject securityProperties
