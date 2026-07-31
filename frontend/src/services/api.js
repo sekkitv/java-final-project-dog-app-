@@ -2,15 +2,20 @@ const BASE_URL = '';
 
 const getToken = () => localStorage.getItem('token');
 
-
+/**
+ * Centralized HTTP request handler
+ * Automatically attaches authentication headers, formats JSON payloads,
+ * handles FormData for file uploads, and throws structured errors on failure
+ */
 async function apiRequest(endpoint, options = {}) {
     const headers = { ...options.headers };
 
-   
+   // Set default Content-Type to JSON unless sending FormData (file uploads require browser-generated boundaries)
     if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
         headers['Content-Type'] = 'application/json';
     }
 
+    // Automatically inject Bearer token if session exists
     const token = getToken();
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -20,8 +25,9 @@ async function apiRequest(endpoint, options = {}) {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             ...options,
             headers,
-        });
-
+        }); 
+        
+        // Safely parse JSON only if the server explicitly returned a JSON Content-Type
         const isJson = response.headers.get('content-type')?.includes('application/json');
         const data = isJson ? await response.json() : null;
 
