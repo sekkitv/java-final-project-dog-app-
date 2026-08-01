@@ -2,9 +2,8 @@ package com.zuzdog.model;
 
 import java.time.Instant;
 
-// mirrors one row of the matches table. The DB enforces user1_id < user2_id via a CHECK
-// constraint, so canonicalPair() must be used any time we insert or look up a match —
-// otherwise inserting (5,3) instead of (3,5) will violate the constraint.
+//this file give us needed function for match logic mainly use in dao match put users in order and getter and setters
+
 public class Match {
 
     private long user1Id;
@@ -16,7 +15,12 @@ public class Match {
         if (userA == userB) {
             throw new IllegalArgumentException("A user cannot match with themselves");
         }
-        return userA < userB ? new long[]{userA, userB} : new long[]{userB, userA};
+
+        if (userA < userB) {
+            return new long[]{userA, userB};
+        } else {
+            return new long[]{userB, userA};
+        }
     }
 
     public long getUser1Id() { return user1Id; }
