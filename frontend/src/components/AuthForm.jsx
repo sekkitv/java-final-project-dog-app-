@@ -45,23 +45,21 @@ export default function AuthForm() {
     setLoading(true);
 
     try {
-      const location = await getBrowserLocation();
-
-      // Dynamically attach 'name' only when registering (!isLogin)
-      const payload = {
-        userName,
-        password,
-        lat: location.lat,
-        lng: location.lng,
-      };
+     
       // API service handles JSON formatting and throws automatically on !response.ok
       const data = isLogin 
-        ? await api.login(payload) 
-        : await api.signup(payload);
+        ? await api.login(userName , password) 
+        : await api.register(userName , password);
 
       // Save token and user session
-      login(data.token, data.userName);
+      login(data.token, data.user || {username: userName});
+      
+      const location = await getBrowserLocation();
 
+      // Update the location of the user
+      if (location.lat && location.lng) {
+         api.updateProfile({ lat: location.lat, lng: location.lng });
+      }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
@@ -86,7 +84,7 @@ export default function AuthForm() {
                  <input
                  type="text"
                  placeholder="Username"
-                 value={name}
+                 value={userName}
                  onChange={(e) => setUserName(e.target.value)}
                  required
                 style={styles.input}
