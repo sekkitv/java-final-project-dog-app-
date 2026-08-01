@@ -78,7 +78,7 @@ public class FeedDao {
                                          double maxDistanceKm, int limit) {
         return jdbcTemplate.query(feedSql, FEED_ROW_MAPPER,
                 viewerLat, viewerLng, viewerLat,  
-                viewerId, viewerId,                 /
+                viewerId, viewerId,                 
                 maxDistanceKm, limit);
     }
 }
