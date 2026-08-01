@@ -47,10 +47,51 @@ export const api = {
     //Auth
     register: (username, password) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
     login: (username, password) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
-    
+ 
     //Feed & Swipes
-    fetchFeed: (limit) => apiRequest(`/api/feed${limit ? `?limit=${limit}` : ''}`),
-    postSwipe: (targetId, action) => apiRequest('/api/swipe', { method: 'POST', body: JSON.stringify({ targetId, action }) }),
+    //fetchFeed: (limit) => apiRequest(`/api/feed${limit ? `?limit=${limit}` : ''}`),
+    //MOCK
+   fetchFeed: async () => [
+      {
+            id: 3,
+            username: 'maya_tlv',
+            ownerName: 'Maya',
+            ownerAge: 28,
+            ownerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+            ownerBio: 'Coffee lover & beach enthusiast!',
+            distance: 2.5,
+            
+            dogName: 'Charlie',
+            dogAge: 2,
+            dogBreed: 'Corgi',
+            dogPhotoUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d',
+            dogBio: 'Loves chasing frisbees and getting belly rubs!'
+        },
+        {
+            id: 4,
+            username: 'yoni_dad',
+            ownerName: 'Yoni',
+            ownerAge: 32,
+            ownerPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+            ownerBio: 'Always up for weekend park walks.',
+            distance: 1.2,
+            
+            dogName: 'Blake',
+            dogAge: 3,
+            dogBreed: 'Golden Retriever',
+            dogPhotoUrl: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2',
+            dogBio: 'Super friendly, loves playdates and treats.'
+        }
+    ],
+    //postSwipe: (targetId, action) => apiRequest('/api/swipe', { method: 'POST', body: JSON.stringify({ targetId, action }) }),
+    //MOCK
+    postSwipe: async (targetId, action) => {
+        console.log(`[Mock API] Swiped ${action} on targetId: ${targetId}`);
+        return {
+            success: true,
+            isMatch: action === 'LIKE' 
+        };
+    },
     fetchMatches: () => apiRequest('/api/matches'),
     
     //Profile
@@ -68,7 +109,12 @@ export const api = {
     },
     
     //Messages 
-    fetchConversations: () => apiRequest('/api/messages/conversations'),
+    //fetchConversations: () => apiRequest('/api/messages/conversations'),\
+    //MOCK
+    fetchConversations: async () => {
+        console.log('[Mock API] Fetching conversations...');
+        return [];
+    },
     fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
     sendMessage: (otherUserId, body) => apiRequest(`/api/messages/with/${otherUserId}`, { method: 'POST', body: JSON.stringify({ body }) }),
 
@@ -80,4 +126,8 @@ export const api = {
 
     //Helper
     mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png'
+
+
+
+   
 };
