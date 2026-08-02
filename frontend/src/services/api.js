@@ -112,14 +112,84 @@ export const api = {
     //fetchConversations: () => apiRequest('/api/messages/conversations'),\
     //MOCK
     fetchConversations: async () => {
-        console.log('[Mock API] Fetching conversations...');
-        return [];
+       return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: 'conv-1',
+            name: 'Luna & Rex',
+            avatarUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150',
+            lastMessage: 'Hey! Want to meet at the dog park tomorrow?',
+            updatedAt: '10:42 AM'
+          },
+          {
+            id: 'conv-2',
+            name: 'Bella',
+            avatarUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150',
+            lastMessage: 'Awesome, see you there! 🐾',
+            updatedAt: 'Yesterday'
+          }
+        ]);
+      }, 300);
+    });
+  },
+    //fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
+    //MOCK
+    async fetchMessages(conversationId) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+             resolve([
+                { id: 'm1', sender: 'them', text: 'Hey there! How is your dog doing?' },
+                { id: 'm2', sender: 'me', text: 'Great! Always full of energy 🐶' },
+                { id: 'm3', sender: 'them', text: 'Want to meet at the dog park tomorrow?' }
+             ]);
+             }, 200);
+        });
     },
-    fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
-    sendMessage: (otherUserId, body) => apiRequest(`/api/messages/with/${otherUserId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+    //sendMessage: (otherUserId, body) => apiRequest(`/api/messages/with/${otherUserId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+    //MOCK
+    async sendMessage(conversationId, text) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+             resolve({ success: true, id: Date.now(), text, sender: 'me' });
+            }, 100);
+        });
+    },
+
 
     //Hangouts
-    fetchHangouts: () => apiRequest('/api/hangouts'),
+    //fetchHangouts: () => apiRequest('/api/hangouts'),
+    //MOCK
+    fetchHangouts: async () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve([
+                    {
+                        id: 'h1',
+                        title: 'Golden Retrievers Playdate 🎾',
+                        locationName: 'HaYarkon Dog Park',
+                        dateTime: 'Today, 17:00',
+                        organizer: 'Alex & Max',
+                        lat: 32.0853,
+                        lng: 34.7818,
+                        participantsCount: 4,
+                        description: 'Casual afternoon playdate for energetic dogs!'
+                    },
+                    {
+                        id: 'h2',
+                        title: 'Small Dogs Chill & Walk 🐾',
+                        locationName: 'Meir Park',
+                        dateTime: 'Tomorrow, 10:00',
+                        organizer: 'Sarah & Luna',
+                        lat: 32.0735,
+                        lng: 34.7731,
+                        participantsCount: 2,
+                        description: 'Gentle morning walk for smaller breeds.'
+                    }
+                ]);
+            }, 200);
+        });
+    },
     createHangout: (data) => apiRequest('/api/hangouts', { method: 'POST', body: JSON.stringify(data) }),
     signupHangout: (id) => apiRequest(`/api/hangouts/${id}/signup`, { method: 'POST' }),
     cancelHangoutSignup: (id) => apiRequest(`/api/hangouts/${id}/signup`, { method: 'DELETE' }),

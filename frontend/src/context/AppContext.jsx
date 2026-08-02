@@ -11,6 +11,8 @@ export const AppProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [user, setUser] = useState(null);
 
+  //Current tab
+  const [activeTab, setActiveTab] = useState('swipes');
   // Double negation (!!) explicitly casts the token string/null into a strict boolean
   const isAuthenticated = !!token;
 
@@ -45,6 +47,8 @@ export const AppProvider = ({ children }) => {
         isAuthenticated,
         login,
         logout,
+        activeTab,
+        setActiveTab,
       }}
     >
       {children}
