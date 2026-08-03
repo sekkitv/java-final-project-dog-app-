@@ -193,6 +193,30 @@ export const api = {
     createHangout: (data) => apiRequest('/api/hangouts', { method: 'POST', body: JSON.stringify(data) }),
     signupHangout: (id) => apiRequest(`/api/hangouts/${id}/signup`, { method: 'POST' }),
     cancelHangoutSignup: (id) => apiRequest(`/api/hangouts/${id}/signup`, { method: 'DELETE' }),
+    // userHangouts: () => apiRequest('/api/hangouts/my-signups'),
+    // MOCK 
+    userHangouts: async () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve([
+                  
+                    {
+                        id: 'h1',
+                        title: 'Golden Retrievers Playdate 🎾',
+                        locationName: 'HaYarkon Dog Park',
+                        dateTime: 'Today, 17:00'
+                    },
+                      {
+                        id: 'h2',
+                        title: 'Golden Retrievers Playdate 🎾',
+                        locationName: 'HaYarkon Dog Park',
+                        dateTime: 'Today, 17:00'
+                    }
+                   
+                ]);
+            }, 200);
+        });
+    },
 
     //Helper
     mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png'

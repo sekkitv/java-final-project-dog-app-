@@ -12,7 +12,7 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   //Current tab
-  const [activeTab, setActiveTab] = useState('swipes');
+  const [activeTab, setActiveTab] = useState('map');
   // Double negation (!!) explicitly casts the token string/null into a strict boolean
   const isAuthenticated = !!token;
 
