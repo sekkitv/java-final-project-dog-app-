@@ -3,7 +3,9 @@ package com.zuzdog.service;
 import com.zuzdog.dao.FeedDao;
 import com.zuzdog.dao.UserDao;
 import com.zuzdog.dto.FeedCandidate;
+import com.zuzdog.exception.ApiException;
 import com.zuzdog.model.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,12 +30,13 @@ public class FeedService {
     // Throws if the viewer has no location set (lat/lng are null) since distance can't be computed.
     // take the user from db check is location and takes from feed dao the list of possible 
     public List<FeedCandidate> getFeedForUser(long viewerId, int limit) {
-        // 
+        //
         User viewer = userDao.findById(viewerId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + viewerId));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (viewer.getLat() == null || viewer.getLng() == null) {
-            throw new IllegalStateException("User has no location set: " + viewerId);
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Set your location (lat/lng) before loading the feed");
         }
         // use limit to limit the number of results returned from the feed dao
         return feedDao.findFeed(viewerId, viewer.getLat(), viewer.getLng(),
