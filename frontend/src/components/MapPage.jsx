@@ -6,7 +6,7 @@ import { api } from '../services/api';
 import EventsList from './EventsList'
 import UserEvents from './UserEvents'
 import ProfileSidebar from './ProfileSidebar'
-import Header from './Header'
+
 
 // Assets & Icon configuration for Leaflet in React bundlers
 import markerIconPng from 'leaflet/dist/images/marker-icon.png';
@@ -198,8 +198,7 @@ export default function MapPage() {
   }
 
   return (
-      <div>
-          <Header />
+  
         <div style = {styles.mainPageWrapper}>
           <div style={styles.leftMainColumn}> 
                 <div style={styles.container}>
@@ -440,7 +439,6 @@ export default function MapPage() {
             <ProfileSidebar />
           </div>
       </div>
-    </div>
   );
 }
 

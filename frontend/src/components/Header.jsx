@@ -1,8 +1,10 @@
-
-
+import NotificationBell from "./NotificationBell";
 
 
 export default function Header() {
+
+ 
+
     return(
         <div style={styles.headerWrapper}>
             <div style={styles.container}>
@@ -11,7 +13,9 @@ export default function Header() {
                     <h1 style={styles.title}>ZuzDog</h1>
                     <div style={styles.subtitle}>Find friends, events & dog spots near you</div>
                 </div>
-                <button style={styles.btnContainer} >🔔</button>
+                <div>
+                    <NotificationBell/>
+                </div>
             </div>
              <div style={styles.divider} />
         </div>
@@ -50,21 +54,10 @@ const styles = {
         marginTop: '5px'
     },
     divider: {
-        height: '1px',
-        backgroundColor: '#E2D3C5',
+        height: '2px',
+        backgroundColor: '#ffe0cc',
         width: '100%',
     },
-    btnContainer:{
-        width:'44px',
-        height:'44px',
-        borderRadius:'50%',
-        background:'white',
-        border: '2px solid #ffe0cc',
-        fontSize:'20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-    }
+   
+    
 };

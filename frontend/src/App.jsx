@@ -5,6 +5,7 @@ import AppNavDock from './components/AppNavDock';
 import MessagesPage from './components/MessagePage';
 import SettingsPage from './components/SettingsPage';
 import MapPage from './components/MapPage';
+import Header from './components/Header'
 
 export default function App() {
   const { activeTab, isAuthenticated } = useApp();
@@ -14,17 +15,34 @@ export default function App() {
   }
 
   return (
-    <div style={{ paddingBottom: '90px', minHeight: '100vh', boxSizing: 'border-box' ,background:'#fff7f2'}}>
-      {activeTab === 'map' && <MapPage />}
+    <div style={styles.appContainer}>
+      <Header />
+      <div style={styles.pageContainer}>
+        {activeTab === 'map' && <MapPage />}
 
-      {activeTab === 'swipes' && <SwipesPage />}
+        {activeTab === 'swipes' && <SwipesPage />}
 
-      {activeTab === 'messages' && <MessagesPage />}
+        {activeTab === 'messages' && <MessagesPage />}
 
-      {activeTab === 'settings' && <SettingsPage />}
+        {activeTab === 'settings' && <SettingsPage />}
 
-      <AppNavDock />
+        <AppNavDock />
+      </div>
     </div>
   );
+}
+
+const styles = {
+  pageContainer:{
+    paddingBottom: '90px', 
+    minHeight: '100vh', 
+    boxSizing: 'border-box',
+    background:'#fff7f2'
+  },
+  appContainer:{
+    minHeight: '100vh', 
+    backgroundColor: '#fff7f2' 
+  },
+
 }
 

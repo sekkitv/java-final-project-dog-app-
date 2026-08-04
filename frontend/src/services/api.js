@@ -219,8 +219,43 @@ export const api = {
     },
 
     //Helper
-    mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png'
+    mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png',
 
+    //fetchNotifications: () => apiRequest('/api/notifications'),
+    //MOCK
+    fetchNotifications: async () => {
+  try {
+    return await apiRequest('/api/notifications');
+  } catch (e) {
+    return [
+      {
+        id: '1',
+        type: 'MATCH',
+        title: 'new match',
+        body: 'roki and dannys dog matching',
+        createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        isRead: false
+      },
+      {
+        id: '2',
+        type: 'HANGOUT_JOIN',
+        title: 'new meeting around',
+        body: 'omer joined meeting',
+        createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        isRead: true
+      }
+    ];
+  }
+},
+    //markNotificationsRead:(id) => apiRequest(`/api/notifications/${id}`)
+    //MOCK
+    markNotificationsRead: async (id) => {
+        try {
+            return await apiRequest(`/api/notifications/${id}/read`, { method: 'POST' });
+        } catch (e) {
+            return { success: true };
+        }
+    }
 
 
    
