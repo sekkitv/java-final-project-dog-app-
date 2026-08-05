@@ -1,5 +1,5 @@
 import  { useState, useEffect } from 'react';
-import ProfileCard from ".//ProfileCard";
+import ProfileCard from "./ProfileCard";
 import { api } from '../services/api';
 
 
@@ -24,7 +24,7 @@ export default function SwipesPage({ onMatchCreated }) {
       try {
         setLoading(true);
         const data = await api.fetchFeed();
-        setFeed(data);
+        setFeed(data.candidates || data);
       } catch (err) {
         console.error('Failed to fetch feed:', err);
         setError('Failed to load profiles. Please try again later.');
@@ -48,7 +48,7 @@ export default function SwipesPage({ onMatchCreated }) {
 
     setCurrentIndex((prev) => prev + 1);
     try {
-      const response = await api.postSwipe(currentProfile.id, action);
+      const response = await api.postSwipe(currentProfile.userId, action);
 
       // On match action, refresh conversation list for potential matches
       if (response?.isMatch) {
@@ -155,5 +155,11 @@ const styles = {
     fontWeight: 'bold',
     boxShadow: '0 4px 10px rgba(255, 126, 95, 0.4)',
     transition: 'all 0.2s ease'
-  }
+  },
+  errorText: {
+  textAlign: 'center',
+  marginTop: '50px',
+  fontSize: '18px',
+  color: '#e74c3c'
+},
 };

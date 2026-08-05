@@ -1,26 +1,12 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup ,useMap, useMapEvents} from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { api } from '../services/api';
 import EventsList from './EventsList'
 import UserEvents from './UserEvents'
 import ProfileSidebar from './ProfileSidebar'
+import { MAP_ICONS, getHangoutIcon } from '../constants/mapIcons';
 
-
-// Assets & Icon configuration for Leaflet in React bundlers
-import markerIconPng from 'leaflet/dist/images/marker-icon.png';
-import markerShadowPng from 'leaflet/dist/images/marker-shadow.png';
-
-
-
-const customIcon = new L.Icon({
-  iconUrl: markerIconPng,
-  shadowUrl: markerShadowPng,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
 
 
 /**
@@ -265,12 +251,13 @@ export default function MapPage() {
 
                             {/* Marker for selected event location */}
                             {formData.lat && formData.lng && (
-                              <Marker position={[parseFloat(formData.lat), parseFloat(formData.lng)]} icon={customIcon}>
+                              <Marker position={[parseFloat(formData.lat), parseFloat(formData.lng)]} 
+                                      icon={MAP_ICONS.SELECTED_LOCATION}>
                                 <Popup>Selected Location 📍</Popup>
                               </Marker>
                             )}
                             {/* Current User Location Marker */}
-                            <Marker position={userLocation} icon={customIcon}>
+                            <Marker position={userLocation} icon={MAP_ICONS.USER_LOCATION || MAP_ICONS.DEFAULT}>
                               <Popup>
                                 <strong>You are here!📍</strong>
                               </Popup>
@@ -281,7 +268,7 @@ export default function MapPage() {
                               <Marker 
                                 key={item.id} 
                                 position={[item.lat, item.lng]} 
-                                icon={customIcon}
+                                icon={getHangoutIcon ? getHangoutIcon(item.type) : (MAP_ICONS[item.type] || MAP_ICONS.DEFAULT)}
                               >
                                 <Popup>
                                   <div style={styles.popupContent}>

@@ -45,44 +45,12 @@ async function apiRequest(endpoint, options = {}) {
 
 export const api = {
     //Auth
-    register: (username, password) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
-    login: (username, password) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+    register: (userData) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
+    login: (username, password , lat = null, lng = null) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password, lat, lng}) }),
     
     //Feed & Swipes
-    //fetchFeed: (limit) => apiRequest(`/api/feed${limit ? `?limit=${limit}` : ''}`),
-    //MOCK
-   fetchFeed: async () => [
-      {
-            id: 3,
-            username: 'maya_tlv',
-            ownerName: 'Maya',
-            ownerAge: 28,
-            ownerPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
-            ownerBio: 'Coffee lover & beach enthusiast!',
-            distance: 2.5,
-            
-            dogName: 'Charlie',
-            dogAge: 2,
-            dogBreed: 'Corgi',
-            dogPhotoUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d',
-            dogBio: 'Loves chasing frisbees and getting belly rubs!'
-        },
-        {
-            id: 4,
-            username: 'yoni_dad',
-            ownerName: 'Yoni',
-            ownerAge: 32,
-            ownerPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-            ownerBio: 'Always up for weekend park walks.',
-            distance: 1.2,
-            
-            dogName: 'Blake',
-            dogAge: 3,
-            dogBreed: 'Golden Retriever',
-            dogPhotoUrl: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2',
-            dogBio: 'Super friendly, loves playdates and treats.'
-        }
-    ],
+    fetchFeed: (limit) => apiRequest(`/api/feed${limit ? `?limit=${limit}` : ''}`),
+
     //postSwipe: (targetId, action) => apiRequest('/api/swipe', { method: 'POST', body: JSON.stringify({ targetId, action }) }),
     //MOCK
     postSwipe: async (targetId, action) => {
@@ -166,28 +134,54 @@ export const api = {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve([
-                    {
-                        id: 'h1',
-                        title: 'Golden Retrievers Playdate 🎾',
-                        locationName: 'HaYarkon Dog Park',
-                        dateTime: 'Today, 17:00',
-                        organizer: 'Alex & Max',
-                        lat: 32.0853,
-                        lng: 34.7818,
-                        participantsCount: 4,
-                        description: 'Casual afternoon playdate for energetic dogs!'
-                    },
-                    {
-                        id: 'h2',
-                        title: 'Small Dogs Chill & Walk 🐾',
-                        locationName: 'Meir Park',
-                        dateTime: 'Tomorrow, 10:00',
-                        organizer: 'Sarah & Luna',
-                        lat: 32.0735,
-                        lng: 34.7731,
-                        participantsCount: 2,
-                        description: 'Gentle morning walk for smaller breeds.'
-                    }
+                  {
+                    id: 'h1',
+                    title: 'Golden Retrievers Playdate 🎾',
+                    type: 'DOG_PARK',
+                    locationName: 'HaYarkon Dog Park',
+                    dateTime: 'Today, 17:00',
+                    organizer: 'Alex & Max',
+                    lat: 32.0853,
+                    lng: 34.7818,
+                    participantsCount: 4,
+                    description: 'Casual afternoon playdate for energetic dogs!'
+                },
+                {
+                    id: 'h2',
+                    title: 'Small Dogs Chill & Walk 🐾',
+                    type: 'DOG_PARK',
+                    locationName: 'Meir Park',
+                    dateTime: 'Tomorrow, 10:00',
+                    organizer: 'Sarah & Luna',
+                    lat: 32.0735,
+                    lng: 34.7731,
+                    participantsCount: 2,
+                    description: 'Gentle morning walk for smaller breeds.'
+                },
+                {
+                    id: 'h3',
+                    title: 'Poop Bag Station 🧴',
+                    type: 'POOP_BAGS',
+                    locationName: 'Rothschild Blvd Corner',
+                    dateTime: 'Always available',
+                    organizer: 'City Council',
+                    lat: 32.0632,
+                    lng: 34.7712,
+                    participantsCount: 0,
+                    description: 'Free waste bags available at the park entrance dispenser.'
+                },
+                {
+                    id: 'h4',
+                    title: 'Dog Water Station 💧',
+                    type: 'WATER',
+                    locationName: 'Dizengoff Square Fountain',
+                    dateTime: 'Always available',
+                    organizer: 'Community',
+                    lat: 32.0779,
+                    lng: 34.7742,
+                    participantsCount: 0,
+                    description: 'Clean drinking water bowl for dogs next to the fountain.'
+                }
                 ]);
             }, 200);
         });

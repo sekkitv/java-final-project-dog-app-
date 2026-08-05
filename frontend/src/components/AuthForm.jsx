@@ -46,20 +46,19 @@ export default function AuthForm() {
 
     try {
      
+       const location = await getBrowserLocation();
       // API service handles JSON formatting and throws automatically on !response.ok
       const data = isLogin 
-        ? await api.login(userName , password) 
-        : await api.register(userName , password);
+        ? await api.login(userName , password, location.lat, location.lng) 
+        : await api.register({username: userName, 
+            password: password, 
+            lat: location.lat, 
+            lng: location.lng 
+          });
 
       // Save token and user session
       login(data.token, data.user || {username: userName});
       
-      const location = await getBrowserLocation();
-
-      // Update the location of the user
-      if (location.lat && location.lng) {
-         api.updateProfile({ lat: location.lat, lng: location.lng });
-      }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {

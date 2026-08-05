@@ -11,6 +11,13 @@ export default function ProfileCard({ profile }) {
 
     if (!profile) return null;
 
+    const defaultAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
+    const defaultDogAvatar = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80';
+
+    const formattedDistance = typeof profile.distanceKm === 'number' 
+      ? profile.distanceKm.toFixed(0) 
+      : profile.distanceKm;
+
     return (
       <div style={styles.cardStackContainer}>
         <div style={styles.backgroundCard} />
@@ -46,24 +53,24 @@ export default function ProfileCard({ profile }) {
               {viewMode === 'owner' ? (
                 <div>
                   <img 
-                    src={profile.ownerPhotoUrl || '/default-avatar.png'} 
-                    alt={profile.ownerName} 
+                    src={profile.photoUrl || defaultAvatar} 
+                    alt={profile.username} 
                     style={styles.image} 
                   />
-                  <h2>{profile.ownerName}, {profile.ownerAge}</h2>
-                  <p style={styles.subtitle}>📍 {profile.distance} km away</p>
-                  <p style={styles.bio}>{profile.ownerBio}</p>
+                  <h2>{profile.username}</h2>
+                  <p style={styles.subtitle}>📍 {formattedDistance} km away</p>
+                  <p style={styles.bio}>{profile.description}</p>
                 </div>
               ) : (
                 <div>
                   <img 
-                    src={profile.dogPhotoUrl || '/default-avatar.png'} 
+                    src={profile.dogPhotoUrl || defaultDogAvatar} 
                     alt={profile.dogName} 
                     style={styles.image} 
                   />
                   <h2>{profile.dogName}, {profile.dogAge}</h2>
-                  <p style={styles.subtitle}>Breed: {profile.dogBreed}</p>
-                  <p style={styles.bio}>{profile.dogBio}</p>
+                  <p style={styles.subtitle}>Breed: {profile.breed}</p>
+                  <p style={styles.bio}>{profile.description}</p>
                 </div>
               )}
 
