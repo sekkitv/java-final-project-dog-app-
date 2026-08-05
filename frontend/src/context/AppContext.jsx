@@ -1,15 +1,4 @@
 /* eslint-disable react-refresh/only-export-components */
-<<<<<<< Updated upstream
-import { createContext, useState } from 'react';
-
-export const AppContext = createContext();
-
-export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-
-  return (
-    <AppContext.Provider value={{ user, setUser }}>
-=======
 import  { createContext, useState ,useEffect} from 'react';
 import {api} from '../services/api'
 // Create and export the context so useApp.js can import it
@@ -100,7 +89,6 @@ export const AppProvider = ({ children }) => {
         markAsRead,
       }}
     >
->>>>>>> Stashed changes
       {children}
     </AppContext.Provider>
   );
