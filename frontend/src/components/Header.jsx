@@ -1,6 +1,10 @@
 import NotificationBell from "./NotificationBell";
 
 
+
+/**
+ * Header Component
+ */
 export default function Header() {
 
  
@@ -13,7 +17,7 @@ export default function Header() {
                     <h1 style={styles.title}>ZuzDog</h1>
                     <div style={styles.subtitle}>Find friends, events & dog spots near you</div>
                 </div>
-                <div>
+                <div style={styles.rightGroup}>
                     <NotificationBell/>
                 </div>
             </div>
@@ -28,10 +32,9 @@ const styles = {
         backgroundColor: '#FAF5EE'
     },
     container:{
-        display: 'flex',
-        flexDirection: 'row',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        justifyContent:'space-between',
         padding: '12px 24px',
         boxSizing: 'border-box'
     },
@@ -57,6 +60,11 @@ const styles = {
         height: '2px',
         backgroundColor: '#ffe0cc',
         width: '100%',
+    },
+    rightGroup: {
+        justifySelf: 'end',
+        display: 'flex',
+        justifyContent: 'flex-end',
     },
    
     

@@ -26,13 +26,23 @@ const customIcon = new L.Icon({
 /**
  * Controller component to fly map view to target coordinates
  */
-function MapController({ center }) {
+function MapController({ center, trigger }) {
   const map = useMap(); 
+  const lat = center?.[0];
+  const lng = center?.[1];
   useEffect(() => {
-    if (center) {
-       map.flyTo(center, map.getZoom()); 
+    if (lat && lng) {
+       map.invalidateSize();
+      const timer = setTimeout(() => {
+        map.flyTo([lat, lng], 14, {
+          animate: true,
+          duration: 1.2,
+        });
+      }, 50);
+
+      return () => clearTimeout(timer);
     }
-  }, [center, map]);
+  }, [lat, lng, trigger, map]);
 
   return null;
 }
@@ -70,6 +80,7 @@ export default function MapPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [myHangouts, setMyHangouts] = useState([]);
+  const [centerTrigger, setCenterTrigger] = useState(0);
   const [formData, setFormData] = useState({
     type: 'Meetup',
     title: '',
@@ -162,10 +173,11 @@ export default function MapPage() {
 
     // Center map on user's current GPS location
     const myAreaClicked = () => {
+      setCenterTrigger((prev) => prev + 1);
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            setUserLocation([position.coords.latitude, position.coords.longitude]);
+           setUserLocation([position.coords.latitude, position.coords.longitude]);
           },
           (error) => {
             console.warn('Geolocation error or denied:', error);
@@ -241,7 +253,7 @@ export default function MapPage() {
                             scrollWheelZoom={true}
                             style={styles.map}
                           >
-                            <MapController center={userLocation} />
+                            <MapController center={userLocation} trigger={centerTrigger} />
                             <TileLayer
                               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -448,9 +460,9 @@ const styles = {
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'center',
-    gap: '16px',
-    maxWidth: '1400px',
-    margin: '20px auto',
+    gap: '20px',
+    maxWidth: '1800px',
+    margin: '16px auto',
     width: '100%',
     boxSizing: 'border-box'
   },
@@ -552,7 +564,7 @@ const styles = {
     color: '#666'
   },
   mapWrapper: {
-    height: '480px',
+    height: '580px',
     width: '100%',
     borderRadius: '16px',
     overflow: 'hidden',

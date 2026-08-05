@@ -25,8 +25,8 @@ async function apiRequest(endpoint, options = {}) {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             ...options,
             headers,
-        }); 
-        
+        });
+
         // Safely parse JSON only if the server explicitly returned a JSON Content-Type
         const isJson = response.headers.get('content-type')?.includes('application/json');
         const data = isJson ? await response.json() : null;
@@ -47,7 +47,7 @@ export const api = {
     //Auth
     register: (username, password) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
     login: (username, password) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
- 
+    
     //Feed & Swipes
     //fetchFeed: (limit) => apiRequest(`/api/feed${limit ? `?limit=${limit}` : ''}`),
     //MOCK
@@ -115,27 +115,29 @@ export const api = {
        return new Promise((resolve) => {
       setTimeout(() => {
         resolve([
-          {
-            id: 'conv-1',
-            name: 'Luna & Rex',
-            avatarUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150',
-            lastMessage: 'Hey! Want to meet at the dog park tomorrow?',
-            updatedAt: '10:42 AM'
-          },
-          {
-            id: 'conv-2',
-            name: 'Bella',
-            avatarUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150',
-            lastMessage: 'Awesome, see you there! 🐾',
-            updatedAt: 'Yesterday'
-          }
+       {
+          id: 'conv1',
+          name: 'Luna & Sarah',
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+          lastMessage: 'Want to meet at the dog park tomorrow?',
+          unread: true, 
+          unreadCount: 2,
+        },
+        {
+          id: 'conv2',
+          name: 'Rex & David',
+          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+          lastMessage: 'Sounds good! See you then.',
+          unread: false,
+          unreadCount: 0,
+        },
         ]);
       }, 300);
     });
   },
     //fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
     //MOCK
-    async fetchMessages(conversationId) {
+    async fetchMessages() {
         return new Promise((resolve) => {
             setTimeout(() => {
              resolve([
@@ -224,30 +226,26 @@ export const api = {
     //fetchNotifications: () => apiRequest('/api/notifications'),
     //MOCK
     fetchNotifications: async () => {
-  try {
-    return await apiRequest('/api/notifications');
-  } catch (e) {
-    return [
-      {
-        id: '1',
-        type: 'MATCH',
-        title: 'new match',
-        body: 'roki and dannys dog matching',
-        createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        isRead: false
-      },
-      {
-        id: '2',
-        type: 'HANGOUT_JOIN',
-        title: 'new meeting around',
-        body: 'omer joined meeting',
-        createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        isRead: true
-      }
+     return [
+        {
+            id: '1',
+            type: 'MATCH',
+            title: 'new match',
+            body: 'roki and dannys dog matching',
+            createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+            isRead: false
+        },
+        {
+            id: '2',
+            type: 'HANGOUT_JOIN',
+            title: 'new meeting around',
+            body: 'omer joined meeting',
+            createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            isRead: true
+        }
     ];
-  }
-},
-    //markNotificationsRead:(id) => apiRequest(`/api/notifications/${id}`)
+    },
+    //markNotificationsRead:(id) => apiRequest(`/api/notifications/${id}` ,{ method: 'POST' });
     //MOCK
     markNotificationsRead: async (id) => {
         try {

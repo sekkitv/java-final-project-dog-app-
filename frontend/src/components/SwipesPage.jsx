@@ -116,7 +116,7 @@ const styles = {
     textAlign: 'center',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   loadingText: {
     textAlign: 'center',

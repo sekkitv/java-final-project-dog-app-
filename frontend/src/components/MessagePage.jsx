@@ -3,7 +3,7 @@ import { api } from '../services/api';
 
 /**
  * MessagesPage Component
- * displays active conversations and handles chat threads with matched profiles.
+ * displays active conversations and handles chat threads with matched profiles
  */
 export default function MessagesPage() {
   const [conversations, setConversations] = useState([]);
@@ -12,15 +12,17 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  //Loading the conversations
+  /**
+   * Fetches active conversations from the backend API on component mount
+   */
   useEffect(() => {
     async function loadConversations() {
       try {
         setLoading(true);
         
          const data = await api.fetchConversations();
-        if (data) {
-            setConversations(data);
+        if (data && data.length > 0) {
+          setConversations(data);
         }
       } catch (err) {
         console.error('Error loading conversations:', err);
@@ -31,9 +33,14 @@ export default function MessagesPage() {
     loadConversations();
   }, []);
 
-  
+  /**
+   * Selects a conversation thread and retrieves its message history
+   */
   const handleSelectConversation = async (conv) => {
     setSelectedChat(conv);
+    setConversations((prev) =>
+      prev.map((c) => (c.id === conv.id ? { ...c, unread: false, unreadCount: 0 } : c))
+    );
     try {
         const history = await api.fetchMessages(conv.id);
       if (history) {  
@@ -44,7 +51,10 @@ export default function MessagesPage() {
     }
   };
 
-
+  /**
+   * Dispatches a new chat message, applying an optimistic UI update
+   * before sending the payload to the server
+   */
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
@@ -69,100 +79,142 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={styles.container}>
-      {!selectedChat ? (
-        <div style={styles.listSection}>
-          <h2 style={styles.header}>Messages</h2>
-          {conversations.length === 0 ? (
-            <div style={styles.empty}>
-              <p>No matches yet. Keep swiping to start conversations! 🐾</p>
-            </div>
-          ) : (
-            <div style={styles.conversationsList}>
-              {conversations.map((conv) => (
+    <div style={styles.mainLayout}>
+      <div style={styles.sidebarSection}>
+        <h2 style={styles.header}>Messages</h2>
+        {conversations.length === 0 ? (
+          <div style={styles.empty}>
+            <p>No matches yet. Keep swiping to start conversations! 🐾</p>
+          </div>
+        ) : (
+          <div style={styles.conversationsList}>
+            {conversations.map((conv) => {
+              const isSelected = selectedChat?.id === conv.id;
+              return (
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv)}
-                  style={styles.conversationCard}
+                  style={{
+                    ...styles.conversationCard,
+                    backgroundColor: isSelected
+                      ? '#FFE8D6'
+                      : conv.unread
+                      ? '#fff9f5'
+                      : '#ffffff',
+                    borderColor: isSelected ? '#FF7A65' : '#eee',
+                  }}
                 >
-                  <img
-                    src={conv.avatarUrl || 'https://via.placeholder.com/50'}
-                    alt={conv.name}
-                    style={styles.avatar}
-                  />
-                  <div style={styles.convInfo}>
-                    <div style={styles.convName}>{conv.name}</div>
-                    <div style={styles.lastMessage}>{conv.lastMessage || 'Click to chat'}</div>
+                  <div style={styles.avatarWrapper}>
+                    <img
+                      src={conv.avatarUrl || 'https://via.placeholder.com/50'}
+                      alt={conv.name}
+                      style={styles.avatar}
+                    />
+                    {conv.unread && <span style={styles.unreadDot} />}
                   </div>
+                  <div style={styles.convInfo}>
+                    <div
+                      style={{
+                        ...styles.convName,
+                        fontWeight: conv.unread || isSelected ? '700' : '600',
+                      }}
+                    >
+                      {conv.name}
+                    </div>
+                    <div
+                      style={{
+                        ...styles.lastMessage,
+                        color: conv.unread ? '#4A3222' : '#777',
+                        fontWeight: conv.unread ? '600' : '400',
+                      }}
+                    >
+                      {conv.lastMessage || 'Click to chat'}
+                    </div>
+                  </div>
+                  {conv.unreadCount > 0 && (
+                    <span style={styles.unreadBadge}>{conv.unreadCount}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div style={styles.chatSection}>
+        {selectedChat ? (
+          <>
+            <div style={styles.chatHeader}>
+              <img
+                src={selectedChat.avatarUrl || 'https://via.placeholder.com/50'}
+                alt={selectedChat.name}
+                style={styles.chatHeaderAvatar}
+              />
+              <span style={styles.chatHeaderName}>{selectedChat.name}</span>
+            </div>
+
+            <div style={styles.messagesList}>
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  style={{
+                    ...styles.messageBubble,
+                    alignSelf: msg.sender === 'me' ? 'flex-end' : 'flex-start',
+                    backgroundColor: msg.sender === 'me' ? '#FF7A65' : '#f0f0f0',
+                    color: msg.sender === 'me' ? '#fff' : '#333',
+                  }}
+                >
+                  {msg.text}
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      ) : (
-        <div style={styles.chatSection}>
-          <div style={styles.chatHeader}>
-            <button onClick={() => setSelectedChat(null)} style={styles.backButton} aria-label="Back">
-             <svg 
-                 width="22" 
-                 height="22" 
-                 viewBox="0 0 24 24" 
-                 fill="none" 
-                 stroke="#ff7e5f" 
-                 strokeWidth="3.5" 
-                 strokeLinecap="round" 
-                 strokeLinejoin="round"
-             >
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-             </svg>
-            </button>
 
-            <span style={styles.chatHeaderName}>{selectedChat.name}</span>
+            <form onSubmit={handleSendMessage} style={styles.inputForm}>
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                style={styles.input}
+              />
+              <button type="submit" style={styles.sendButton}>
+                Send
+              </button>
+            </form>
+          </>
+        ) : (
+          <div style={styles.noChatSelected}>
+            <p>Select a conversation to start chatting 💬</p>
           </div>
-
-          <div style={styles.messagesList}>
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                style={{
-                  ...styles.messageBubble,
-                  alignSelf: msg.sender === 'me' ? 'flex-end' : 'flex-start',
-                  backgroundColor: msg.sender === 'me' ? '#ff7e5f' : '#f0f0f0',
-                  color: msg.sender === 'me' ? '#fff' : '#333',
-                }}
-              >
-                {msg.text}
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleSendMessage} style={styles.inputForm}>
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              style={styles.input}
-            />
-            <button type="submit" style={styles.sendButton}>
-              Send
-            </button>
-          </form>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 const styles = {
-  container: {
-    maxWidth: '500px',
-    margin: '0 auto',
-    padding: '16px',
-    height: 'calc(100vh - 120px)',
+mainLayout: {
+  display: 'grid',
+  gridTemplateColumns: '320px 1fr',
+  gap: '20px',
+  maxWidth: '1200px',
+  margin: '10px auto 90px auto',
+  width: '95%',
+  height: 'calc(100vh - 220px)',    
+  minHeight: '480px',
+  backgroundColor: '#ffffff',
+  borderRadius: '24px',
+  border: '2px solid #2D3748',
+  padding: '20px',
+  boxSizing: 'border-box',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+},
+  sidebarSection: {
+    borderRight: '1.5px solid #eee',
+    paddingRight: '16px',
     display: 'flex',
     flexDirection: 'column',
+    overflowY: 'auto',
   },
   loading: {
     textAlign: 'center',
@@ -178,24 +230,29 @@ const styles = {
     marginTop: '40px',
     color: '#888',
   },
-  listSection: {
-    flex: 1,
-  },
   conversationsList: {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
   },
-  conversationCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
-    borderRadius: '12px',
-    backgroundColor: '#fff',
-    border: '1px solid #eee',
-    cursor: 'pointer',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+conversationCard: {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '12px',
+  borderRadius: '16px',
+  backgroundColor: '#fff',
+  border: '1.5px solid #eee',
+  cursor: 'pointer',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+  position: 'relative',
+  transition: 'all 0.2s ease',
+  height: '75px',        
+  boxSizing: 'border-box',
+},
+  avatarWrapper: {
+    position: 'relative',
+    display: 'inline-block',
   },
   avatar: {
     width: '50px',
@@ -205,17 +262,22 @@ const styles = {
   },
   convInfo: {
     display: 'flex',
+    flex:1,
     flexDirection: 'column',
   },
   convName: {
     fontWeight: 'bold',
     fontSize: '16px',
   },
-  lastMessage: {
-    fontSize: '13px',
-    color: '#777',
-    marginTop: '4px',
-  },
+lastMessage: {
+  fontSize: '13px',
+  color: '#777',
+  marginTop: '4px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: '180px',
+},
   chatSection: {
     display: 'flex',
     flexDirection: 'column',
@@ -227,16 +289,6 @@ const styles = {
     gap: '12px',
     paddingBottom: '12px',
     borderBottom: '1px solid #eee',
-  },
-  backButton: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '6px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '50%',
   },
   chatHeaderName: {
     fontWeight: 'bold',
@@ -277,5 +329,37 @@ const styles = {
     color: '#fff',
     fontWeight: 'bold',
     cursor: 'pointer',
+  },
+  unreadDot: {
+    position: 'absolute',
+    top: '2px',
+    right: '2px',
+    width: '12px',
+    height: '12px',
+    backgroundColor: '#ff4d4f',
+    borderRadius: '50%',
+    border: '2px solid white',
+  },
+  unreadBadge: {
+    backgroundColor: '#ff7e5f',
+    color: 'white',
+    borderRadius: '12px',
+    padding: '2px 8px',
+    fontSize: '12px',
+    fontWeight: 'bold',
+  },
+  chatHeaderAvatar: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+  },
+  noChatSelected: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    color: '#888',
+    fontSize: '16px',
   },
 };
