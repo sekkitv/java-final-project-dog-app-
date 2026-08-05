@@ -1,11 +1,4 @@
-version: "3.8"
-
-# Local infrastructure only — PostgreSQL + ActiveMQ.
-# The Spring Boot backend and the React frontend are NOT run from here;
-# each teammate runs them locally with `mvn spring-boot:run` / `npm run dev`
-# (see application.properties / vite.config.js for the ports they expect).
 services:
-
   db:
     image: postgres:16-alpine
     container_name: zuzdog-db
@@ -14,21 +7,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      # host:container — matches spring.datasource.url=jdbc:postgresql://localhost:5433/zuzdog
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - zuzdog_pg_data:/var/lib/postgresql/data
-      # Any .sql file here runs once, automatically, in alphabetical order —
-      # but only the FIRST time the container is created with an empty data volume.
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/init-postgresql.sql:/docker-entrypoint-initdb.d/1-init-postgresql.sql
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/mock-data.sql:/docker-entrypoint-initdb.d/2-mock-data.sql
-// container for each of us so we could run the activemq 
+
   message-broker:
     image: apache/activemq-classic:5.18.3
     container_name: zuzdog-mq
     ports:
-      - "61616:61616" # JMS (used by Spring Boot's spring.activemq.broker-url)
-      - "8161:8161"   # Web admin console: http://localhost:8161 (admin/admin)
+      - '61616:61616'
+      - '8161:8161'
 
 volumes:
   zuzdog_pg_data:

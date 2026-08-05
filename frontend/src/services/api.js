@@ -62,9 +62,61 @@ export const api = {
     },
     
     //Messages 
+<<<<<<< Updated upstream
     fetchConversations: () => apiRequest('/api/messages/conversations'),
     fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
     sendMessage: (otherUserId, body) => apiRequest(`/api/messages/with/${otherUserId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+=======
+    //fetchConversations: () => apiRequest('/api/messages/conversations'),\
+    //MOCK
+    fetchConversations: async () => {
+       return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+       {
+          id: 'conv1',
+          name: 'Luna & Sarah',
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+          lastMessage: 'Want to meet at the dog park tomorrow?',
+          unread: true, 
+          unreadCount: 2,
+        },
+        {
+          id: 'conv2',
+          name: 'Rex & David',
+          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+          lastMessage: 'Sounds good! See you then.',
+          unread: false,
+          unreadCount: 0,
+        },
+        ]);
+      }, 300);
+    });
+  },
+    //fetchMessages: (otherUserId) => apiRequest(`/api/messages/with/${otherUserId}`),
+    //MOCK
+    async fetchMessages() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+             resolve([
+                { id: 'm1', sender: 'them', text: 'Hey there! How is your dog doing?' },
+                { id: 'm2', sender: 'me', text: 'Great! Always full of energy 🐶' },
+                { id: 'm3', sender: 'them', text: 'Want to meet at the dog park tomorrow?' }
+             ]);
+             }, 200);
+        });
+    },
+    //sendMessage: (otherUserId, body) => apiRequest(`/api/messages/with/${otherUserId}`, { method: 'POST', body: JSON.stringify({ body }) }),
+    //MOCK
+    async sendMessage(conversationId, text) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+             resolve({ success: true, id: Date.now(), text, sender: 'me' });
+            }, 100);
+        });
+    },
+
+>>>>>>> Stashed changes
 
     //Hangouts
     fetchHangouts: () => apiRequest('/api/hangouts'),
@@ -73,5 +125,44 @@ export const api = {
     cancelHangoutSignup: (id) => apiRequest(`/api/hangouts/${id}/signup`, { method: 'DELETE' }),
 
     //Helper
+<<<<<<< Updated upstream
     mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png'
+=======
+    mediaUrl: (url) => url ? `${BASE_URL}${url}` : '/default-avatar.png',
+
+    //fetchNotifications: () => apiRequest('/api/notifications'),
+    //MOCK
+    fetchNotifications: async () => {
+     return [
+        {
+            id: '1',
+            type: 'MATCH',
+            title: 'new match',
+            body: 'roki and dannys dog matching',
+            createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+            isRead: false
+        },
+        {
+            id: '2',
+            type: 'HANGOUT_JOIN',
+            title: 'new meeting around',
+            body: 'omer joined meeting',
+            createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            isRead: true
+        }
+    ];
+    },
+    //markNotificationsRead:(id) => apiRequest(`/api/notifications/${id}` ,{ method: 'POST' });
+    //MOCK
+    markNotificationsRead: async (id) => {
+        try {
+            return await apiRequest(`/api/notifications/${id}/read`, { method: 'POST' });
+        } catch (e) {
+            return { success: true };
+        }
+    }
+
+
+   
+>>>>>>> Stashed changes
 };
