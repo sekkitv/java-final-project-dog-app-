@@ -162,3 +162,32 @@ INSERT INTO notifications (user_id, type, reference_id, title, body, created_at,
         'Perfect. 10am by the dog beach?',
         NOW() - INTERVAL '2 days' + INTERVAL '30 minutes',
         NOW()); -- already read
+
+-- -----------------------------------------------------------------------------
+-- Hangouts
+--   3 events spread around Tel Aviv + one cross-country spot in Jerusalem.
+--   organizer_user_id uses the hardcoded user ids (1..10, see header comment).
+--   organizer_name is denormalised here as a snapshot of the organizer`s username.
+-- -----------------------------------------------------------------------------
+INSERT INTO hangouts (organizer_user_id, title, description, organizer_name, latitude, longitude, event_time, activity_type) VALUES
+    -- maya (1): park meetup at Yarkon
+    (1, 'Yarkon Park morning walk', 'Casual stroll by the dog beach. All sizes welcome.', 'maya_tlv',  32.0860, 34.7860, NOW() + INTERVAL '3 days', 'MEETUP'),
+    -- amir (4): a pet-friendly cafe
+    (4, 'Cafe Paws brunch', 'Dog-friendly cafe. Bring your pup, we`ll bring treats.', 'amir_gold', 32.0770, 34.7830, NOW() + INTERVAL '5 days', 'DOG_FRIENDLY_BUSINESS'),
+    -- dana (7): a water spot in Jerusalem
+    (7, 'Ein Karem water break', 'Shady water spot near the spring. Great for hot days.', 'dana_jer',  31.7950, 35.1880, NOW() + INTERVAL '1 week', 'WATER_SPOT')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------------------------------------------------------------
+-- Hangout participants
+--   maya (1) and noa (3) both join the Yarkon Park meetup (hangout 1).
+--   lily (5) joins the cafe brunch (hangout 2).
+--   Nobody has joined the Jerusalem water spot yet (hangout 3) — keeps the
+--   participant_count for that one at 0 so the 0 -> 1 growth is visible when
+--   you sign up via the API in the DoD checks.
+-- -----------------------------------------------------------------------------
+INSERT INTO hangout_participants (hangout_id, user_id) VALUES
+    (1, 1),
+    (1, 3),
+    (2, 5)
+ON CONFLICT DO NOTHING;
