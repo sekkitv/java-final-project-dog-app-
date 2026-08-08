@@ -1,5 +1,5 @@
--- we will create 5 main tables for out application - 
--- Users, dogs, swipes, matches, messages
+-- we will create 6 main tables for out application - 
+-- Users, dogs, swipes, matches, messages, notifications
 
 CREATE TABLE IF NOT EXISTS users (
     user_id       BIGSERIAL     PRIMARY KEY,   -- bigserial is used automatically to give a unique id for each user, also gives us a bigger range of values
@@ -59,6 +59,22 @@ CREATE TABLE IF NOT EXISTS messages (
     CHECK (char_length(trim(body)) > 0) -- we do it to reject empty messages and pure whitespaces.
 );
 
+-- notifications table stores in-app notifications for each user.
+-- each notification belongs to a user (user_id), has a type (MATCH, HANGOUT_JOIN, MESSAGE),
+-- an optional reference_id (points to the related match/message/hangout row, kept as a plain
+-- BIGINT and NOT a foreign key so we don`t break if the referenced row is cleaned up later),
+-- a title, a body, and timestamps. read_at stays NULL until the user opens the notification.
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id BIGSERIAL     PRIMARY KEY,
+    user_id         BIGINT        NOT NULL REFERENCES users (user_id) ON DELETE CASCADE, --when deleting a user the notification is deleted too
+    type            VARCHAR(20)   NOT NULL CHECK (type IN ('MATCH', 'HANGOUT_JOIN', 'MESSAGE')), --the kind of event that triggered the notification
+    reference_id    BIGINT, -- nullable: points to the related match/message/hangout row (kept loose on purpose)
+    title           VARCHAR(120)  NOT NULL,
+    body            TEXT          NOT NULL DEFAULT '',
+    created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+    read_at         TIMESTAMPTZ   -- NULL means unread, a timestamp means the user has seen it
+);
+
 --INDEXES--
 -- we create indexes to improve the performance of our queries, especially for swipes and matches since they will be queried a lot.
 -- the indexes help us find the rows we need much faster instead of scanning the entire table.
@@ -79,3 +95,10 @@ CREATE INDEX IF NOT EXISTS idx_matches_user2 ON matches (user2_id);
 -- "Messages I sent" and "messages I received" in chronological order so we can display them in the chat interface
 CREATE INDEX IF NOT EXISTS idx_messages_pair ON messages (sender_id, receiver_id, sent_at);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages (receiver_id, sent_at);
+
+-- "Notifications for a user" ordered newest first — used by findForUser(userId)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications (user_id, created_at DESC);
+
+-- "Unread notifications for a user" — used by countUnread(userId) and the WHERE clause of markAllRead(userId).
+-- partial index (only rows where read_at IS NULL) so the unread count query stays fast even when most rows are read.
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id) WHERE read_at IS NULL;
