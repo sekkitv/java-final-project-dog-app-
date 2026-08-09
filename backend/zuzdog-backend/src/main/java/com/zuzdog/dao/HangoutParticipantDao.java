@@ -59,4 +59,12 @@ public class HangoutParticipantDao {
                 Long.class, hangoutId);
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
+
+    // all participant user-ids for a hangout, in insert order (which is signup order).
+    // used by NotificationService.notifyHangoutJoin to fan out a HANGOUT_JOIN notification to
+    public List<Long> findParticipantUserIds(long hangoutId) {
+        return jdbcTemplate.queryForList(
+                "SELECT user_id FROM hangout_participants WHERE hangout_id = ? ORDER BY signed_up_at",
+                Long.class, hangoutId);
+    }
 }

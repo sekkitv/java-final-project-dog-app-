@@ -5,16 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zuzdog.controller.MessageController;
 import com.zuzdog.dao.MatchDao;
 import com.zuzdog.dao.MessageDao;
+import com.zuzdog.dao.NotificationDao;
 import com.zuzdog.dao.UserDao;
 import com.zuzdog.dto.ConversationSummary;
 import com.zuzdog.exception.GlobalExceptionHandler;
 import com.zuzdog.model.ChatMessage;
 import com.zuzdog.model.Match;
+import com.zuzdog.model.Notification;
+import com.zuzdog.model.NotificationType;
 import com.zuzdog.model.User;
 import com.zuzdog.security.AuthenticationFilter;
 import com.zuzdog.security.SecurityProperties;
 import com.zuzdog.security.SessionService;
 import com.zuzdog.service.MessageService;
+import com.zuzdog.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,7 +84,8 @@ class MessageApiTest {
         // the only match in the system: alice <-> bob
         matchDao.addMatch(ALICE_ID, BOB_ID);
 
-        MessageService messageService = new MessageService(messageDao, matchDao);
+        MessageService messageService = new MessageService(messageDao, matchDao,
+                new NotificationService(new FakeNotificationDao()));
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new MessageController(messageService))
@@ -521,6 +526,42 @@ class MessageApiTest {
             return messages.stream()
                     .filter(m -> m.getSenderId() == userId || m.getReceiverId() == userId)
                     .toList();
+        }
+    }
+
+    // No-op NotificationDao. MessageService now fires a MESSAGE notification on
+    // every send (DoD step 2.6), so the service-under-test needs a NotificationService
+    // wired in. We never assert on the inserted notifications in these message-flow
+    // tests (those assertions belong to a dedicated notifications test), so every
+    // method is a harmless stub: insert returns a fake incrementing id, the reads
+    // return empty, markAllRead does nothing. Building it with super(new JdbcTemplate())
+    // satisfies the parent constructor without ever touching a real DB, exactly like
+    // the other fakes in this file.
+    static class FakeNotificationDao extends NotificationDao {
+        private long nextId = 1;
+
+        FakeNotificationDao() {
+            super(new JdbcTemplate());
+        }
+
+        @Override
+        public long insert(long userId, NotificationType type, Long referenceId, String title, String body) {
+            return nextId++;
+        }
+
+        @Override
+        public List<Notification> findForUser(long userId) {
+            return List.of();
+        }
+
+        @Override
+        public int countUnread(long userId) {
+            return 0;
+        }
+
+        @Override
+        public int markAllRead(long userId) {
+            return 0;
         }
     }
 }

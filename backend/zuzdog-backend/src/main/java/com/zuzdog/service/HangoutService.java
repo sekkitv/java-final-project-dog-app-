@@ -26,13 +26,16 @@ public class HangoutService {
     private final HangoutDao hangoutDao;
     private final HangoutParticipantDao participantDao;
     private final UserDao userDao;
+    private final NotificationService notificationService;
 
     public HangoutService(HangoutDao hangoutDao,
                            HangoutParticipantDao participantDao,
-                           UserDao userDao) {
+                           UserDao userDao,
+                           NotificationService notificationService) {
         this.hangoutDao = hangoutDao;
         this.participantDao = participantDao;
         this.userDao = userDao;
+        this.notificationService = notificationService;
     }
 
     // GET /api/hangouts  every hangout, newest first, enriched with the user`s signup state.
@@ -81,9 +84,18 @@ public class HangoutService {
         if (existing.isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Hangout not found");
         }
-        participantDao.add(hangoutId, userId); // ON CONFLICT DO NOTHING — safe to call again
+        // participantDao.add uses ON CONFLICT (hangout_id, user_id) DO NOTHING, so it returns
+        // 1 on a real first signup and 0 on a repeat signup (idiot proof)
+        int added = participantDao.add(hangoutId, userId);
         Optional<Hangout> updated = hangoutDao.findById(hangoutId, userId);
-        return toResponse(updated.orElse(existing.get()));
+        Hangout result = updated.orElse(existing.get());
+        // if added == 1, we add a new participant and notify the organizer and other participantes, if added == 0 we do nothing.
+        if (added == 1) {
+            long organizerId = result.getOrganizerUserId();
+            List<Long> participantIds = participantDao.findParticipantUserIds(hangoutId);
+            notificationService.notifyHangoutJoin(hangoutId, userId, organizerId, participantIds);
+        }
+        return toResponse(result);
     }
 
     // map a Hangout model to the response DTO. activityType is flattened to its String name.

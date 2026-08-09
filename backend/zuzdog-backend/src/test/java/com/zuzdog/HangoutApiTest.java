@@ -5,15 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zuzdog.controller.HangoutController;
 import com.zuzdog.dao.HangoutDao;
 import com.zuzdog.dao.HangoutParticipantDao;
+import com.zuzdog.dao.NotificationDao;
 import com.zuzdog.dao.UserDao;
 import com.zuzdog.exception.GlobalExceptionHandler;
 import com.zuzdog.model.Hangout;
 import com.zuzdog.model.HangoutActivityType;
+import com.zuzdog.model.Notification;
+import com.zuzdog.model.NotificationType;
 import com.zuzdog.model.User;
 import com.zuzdog.security.AuthenticationFilter;
 import com.zuzdog.security.SecurityProperties;
 import com.zuzdog.security.SessionService;
 import com.zuzdog.service.HangoutService;
+import com.zuzdog.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,7 +75,8 @@ class HangoutApiTest {
         userDao.byId.put(ALICE_ID, alice);
         userDao.byUsername.put(ALICE_NAME, alice);
 
-        HangoutService hangoutService = new HangoutService(hangoutDao, participantDao, userDao);
+        HangoutService hangoutService = new HangoutService(hangoutDao, participantDao, userDao,
+                new NotificationService(new FakeNotificationDao()));
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new HangoutController(hangoutService))
@@ -456,9 +461,59 @@ class HangoutApiTest {
             return rows.contains(new Pair(hangoutId, userId));
         }
 
+        // the new signup flow calls findParticipantUserIds to fan out HANGOUT_JOIN
+        // notifications. Without this override the call falls through to the real
+        // HangoutParticipantDao, which runs SQL against the empty JdbcTemplate
+        // passed to super() and throws. We return the userIds of every stored pair
+        // for this hangout, in insertion order (LinkedHashSet preserves it in the
+        // records set; we sort by stream order here).
+        @Override
+        public List<Long> findParticipantUserIds(long hangoutId) {
+            return rows.stream()
+                    .filter(p -> p.hangoutId == hangoutId)
+                    .map(p -> p.userId)
+                    .toList();
+        }
+
         // test-only view: every (hangoutId, userId) pair for a given hangout.
         List<Pair> signupsFor(long hangoutId) {
             return rows.stream().filter(p -> p.hangoutId == hangoutId).toList();
+        }
+    }
+
+    // No-op NotificationDao. HangoutService.signup now fires HANGOUT_JOIN
+    // notifications on every first RSVP, so the service-under-test needs a
+    // NotificationService wired in. These hangout-flow tests do not assert on
+    // the created notifications (those live in a future notifications test), so
+    // every method is a harmless stub: insert returns a fake incrementing id,
+    // the reads return empty, markAllRead does nothing. super(new JdbcTemplate())
+    // satisfies the parent constructor without ever touching a real DB, matching
+    // the pattern used by every other fake in this file.
+    static class FakeNotificationDao extends NotificationDao {
+        private long nextId = 1;
+
+        FakeNotificationDao() {
+            super(new JdbcTemplate());
+        }
+
+        @Override
+        public long insert(long userId, NotificationType type, Long referenceId, String title, String body) {
+            return nextId++;
+        }
+
+        @Override
+        public List<Notification> findForUser(long userId) {
+            return List.of();
+        }
+
+        @Override
+        public int countUnread(long userId) {
+            return 0;
+        }
+
+        @Override
+        public int markAllRead(long userId) {
+            return 0;
         }
     }
 }

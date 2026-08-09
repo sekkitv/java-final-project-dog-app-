@@ -20,20 +20,25 @@ public class MessageService {
 
     private final MessageDao messageDao;
     private final MatchDao matchDao;
+    private final NotificationService notificationService;
 
-    public MessageService(MessageDao messageDao, MatchDao matchDao) {
+    public MessageService(MessageDao messageDao, MatchDao matchDao, NotificationService notificationService) {
         this.messageDao = messageDao;
         this.matchDao = matchDao;
+        this.notificationService = notificationService;
     }
 
     // Send a message, but only if sender and receiver are matched.
-    // No match -> ApiException(FORBIDDEN) -> HTTP 403 (DoD item 4).
+    // No match -> ApiException(FORBIDDEN) -> HTTP 403.
     public long sendMessage(long senderId, long receiverId, String body) {
         if (!matchDao.existsBetween(senderId, receiverId)) {
             throw new ApiException(HttpStatus.FORBIDDEN,
                     "Messaging not allowed: you are not matched with this user");
         }
-        return messageDao.insert(senderId, receiverId, body);
+        long messageId = messageDao.insert(senderId, receiverId, body);
+        // when a message is sent we need to send a notification to the receiver.
+        notificationService.notifyMessage(senderId, receiverId, messageId);
+        return messageId;
     }
 
     // Full chat history between two users, oldest first (chronological).
