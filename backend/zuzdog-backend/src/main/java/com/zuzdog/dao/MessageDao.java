@@ -1,5 +1,6 @@
 package com.zuzdog.dao;
 
+import com.zuzdog.dto.ConversationSummary;
 import com.zuzdog.model.ChatMessage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,7 +13,7 @@ import java.util.Map;
 
 @Repository
 public class MessageDao {
-    
+
     //take a sql row and make an object out of it
     private static final RowMapper<ChatMessage> MESSAGE_ROW_MAPPER = (rs, rowNum) -> {
         ChatMessage msg = new ChatMessage();
@@ -23,6 +24,16 @@ public class MessageDao {
         msg.setSentAt(JdbcMappingUtils.getInstant(rs, "sent_at"));
         return msg;
     };
+
+    // Maps a ConversationSummary row (the result of findConversationSummaries) into
+    // the ConversationSummary record directly via its constructor.
+    private static final RowMapper<ConversationSummary> SUMMARY_ROW_MAPPER = (rs, rowNum) ->
+            new ConversationSummary(
+                    rs.getLong("other_user_id"),
+                    rs.getString("other_username"),
+                    rs.getString("last_message"),
+                    JdbcMappingUtils.getInstant(rs, "last_message_time"),
+                    rs.getInt("unread_count"));
 
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert insertActor;
@@ -70,5 +81,44 @@ public class MessageDao {
                 ORDER BY other_user_id, sent_at DESC
                 """;
         return jdbcTemplate.query(sql, MESSAGE_ROW_MAPPER, userId, userId, userId);
+    }
+
+    // One summary row per conversation partner for the conversation list screen.
+    // A single query that:
+    //   - uses DISTINCT ON (other_user_id) to pick the latest message per partner
+    //   - joins users to get the partner's username
+    //   - LEFT JOINs a subquery counting messages received from each partner
+    //     (unreadCount is a proxy: no per-message read flag exists yet, so every
+    //      received message from that partner counts as "unread").
+    // Ordered by most recent first.
+    public List<ConversationSummary> findConversationSummaries(long userId) {
+        String sql = """
+                SELECT
+                    conv.other_user_id,
+                    u.username       AS other_username,
+                    lm.body          AS last_message,
+                    lm.sent_at       AS last_message_time,
+                    COALESCE(uc.unread_count, 0) AS unread_count
+                FROM (
+                    SELECT DISTINCT ON (other_user_id) other_user_id, message_id, sent_at
+                    FROM (
+                        SELECT message_id, sent_at,
+                               CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS other_user_id
+                        FROM messages
+                        WHERE sender_id = ? OR receiver_id = ?
+                    ) t
+                    ORDER BY other_user_id, sent_at DESC
+                ) conv
+                JOIN messages lm ON lm.message_id = conv.message_id
+                JOIN users u    ON u.user_id     = conv.other_user_id
+                LEFT JOIN (
+                    SELECT sender_id AS partner_id, COUNT(*) AS unread_count
+                    FROM messages
+                    WHERE receiver_id = ?
+                    GROUP BY sender_id
+                ) uc ON uc.partner_id = conv.other_user_id
+                ORDER BY lm.sent_at DESC
+                """;
+        return jdbcTemplate.query(sql, SUMMARY_ROW_MAPPER, userId, userId, userId, userId);
     }
 }

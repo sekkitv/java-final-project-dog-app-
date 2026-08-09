@@ -2,13 +2,18 @@ package com.zuzdog.service;
 
 import com.zuzdog.dao.MatchDao;
 import com.zuzdog.dao.MessageDao;
+import com.zuzdog.dto.ConversationSummary;
+import com.zuzdog.exception.ApiException;
 import com.zuzdog.model.ChatMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 //  logic  for messaging.
-// Enforces that messages can only be sent between matched users 
+// Enforces that messages can only be sent between matched users.
+// If sender and receiver are NOT matched we throw ApiException(FORBIDDEN) which
+// GlobalExceptionHandler turns into an HTTP 403 — that is the message gate.
 
 @Service
 public class MessageService {
@@ -22,18 +27,26 @@ public class MessageService {
     }
 
     // Send a message, but only if sender and receiver are matched.
-    // Throws if there's no match between them.
+    // No match -> ApiException(FORBIDDEN) -> HTTP 403 (DoD item 4).
     public long sendMessage(long senderId, long receiverId, String body) {
         if (!matchDao.existsBetween(senderId, receiverId)) {
-            throw new IllegalStateException(
-                    "Cannot send message: users " + senderId + " and " + receiverId + " are not matched");
+            throw new ApiException(HttpStatus.FORBIDDEN,
+                    "Messaging not allowed: you are not matched with this user");
         }
         return messageDao.insert(senderId, receiverId, body);
     }
 
-    // Full chat history between two users, oldest first.
+    // Full chat history between two users, oldest first (chronological).
     public List<ChatMessage> getThread(long userA, long userB) {
         return messageDao.findThread(userA, userB);
+    }
+
+    // Conversation list screen: one summary row per conversation partner.
+    // Each row has the partner's username, the last message + time, and an
+    // unread count (a proxy: the number of messages received from that partner
+    // — there is no per-message read flag in the schema yet).
+    public List<ConversationSummary> getConversationSummaries(long userId) {
+        return messageDao.findConversationSummaries(userId);
     }
 
     // Most recent message per conversation partner, for the conversation list screen.
