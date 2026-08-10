@@ -22,7 +22,7 @@ services:
       # but only the FIRST time the container is created with an empty data volume.
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/init-postgresql.sql:/docker-entrypoint-initdb.d/1-init-postgresql.sql
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/mock-data.sql:/docker-entrypoint-initdb.d/2-mock-data.sql
-// container for each of us so we could run the activemq 
+# container for each of us so we could run the activemq 
   message-broker:
     image: apache/activemq-classic:5.18.3
     container_name: zuzdog-mq
