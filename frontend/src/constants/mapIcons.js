@@ -24,6 +24,7 @@ export const MAP_ICONS = {
   DOG_PARK: createCustomIcon('🐶'),  
   POOP_BAGS: createCustomIcon('💩'),
   WATER: createCustomIcon('💧'),
+  FRIENDLY_BUSINESS: createCustomIcon('☕'),
   SELECTED_LOCATION: createCustomIcon('🎯'),
   DEFAULT: createCustomIcon('📍'),
 };

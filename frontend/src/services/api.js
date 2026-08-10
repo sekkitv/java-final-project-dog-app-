@@ -149,7 +149,7 @@ export const api = {
                 {
                     id: 'h2',
                     title: 'Small Dogs Chill & Walk 🐾',
-                    type: 'DOG_PARK',
+                    type: 'FRIENDLY_BUSINESS',
                     locationName: 'Meir Park',
                     dateTime: 'Tomorrow, 10:00',
                     organizer: 'Sarah & Luna',
@@ -241,12 +241,9 @@ export const api = {
     },
     //markNotificationsRead:(id) => apiRequest(`/api/notifications/${id}` ,{ method: 'POST' });
     //MOCK
-    markNotificationsRead: async (id) => {
-        try {
-            return await apiRequest(`/api/notifications/${id}/read`, { method: 'POST' });
-        } catch (e) {
+    markNotificationsRead: async () => {
+
             return { success: true };
-        }
     }
 
 
