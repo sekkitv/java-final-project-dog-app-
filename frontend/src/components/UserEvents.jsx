@@ -37,6 +37,23 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
         }
     };
 
+     const formatEventTime = (timeString) => {
+      if (!timeString) return 'N/A';
+      if (!timeString.includes('T') && !timeString.includes('-')) {
+        return timeString;
+      }
+      const date = new Date(timeString);
+      if (isNaN(date.getTime())) return timeString;
+
+      return date.toLocaleString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+   };
+
     if (loading) {
         return <div style={styles.loading}>Loading sign-ups...</div>;
     }
@@ -47,34 +64,32 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
             <h2 style = {styles.title}>Events I'm signed up for</h2>
             <p style = {styles.subtitle}>Your upcoming meetups</p>
             <div style={styles.divider} />
-            
-            {myHangouts.length === 0 ? 
-                (<div style = {styles.emptyText}>No sign ups yet. pick an event from the map above!</div>)
-                :
-                (myHangouts.map((item) => (
-                <div 
-                key={item.id}
-                style={styles.card}
-                > 
-                    <div style={styles.cardContent}>
-                        <div style ={styles.cardTitle}>title: {item.title}</div>
-                        <div style ={styles.cardText}>location: {item.locationName}</div>
-                        <div style ={styles.cardText}>time: {item.dateTime}</div>
+            <div style={styles.scrollList}>
+                {myHangouts.length === 0 ? 
+                    (<div style = {styles.emptyText}>No sign ups yet. pick an event from the map above!</div>)
+                    :
+                    (myHangouts.map((item) => (
+                    <div 
+                    key={item.hangoutId}
+                    style={styles.card}
+                    > 
+                        <div style={styles.cardContent}>
+                            <div style ={styles.cardTitle}> {item.title}</div>
+                            <div style ={styles.cardText}>description: {item.description}</div>
+                            <div style ={styles.cardText}>time: {formatEventTime(item.eventTime)}</div>
+                        </div>
+                        <button
+                            onClick={() => handleCancelSignup(item.hangoutId, item.title)}
+                            style={styles.cancelBtn}
+                            title="Cancel signup"
+                        >
+                        ✕
+                        </button>
                     </div>
-                    <button
-                        onClick={() => handleCancelSignup(item.id, item.title)}
-                        style={styles.cancelBtn}
-                        title="Cancel signup"
-                    >
-                     ✕
-                    </button>
-                </div>
-                ))
-                )
-            }
-            
-
-      
+                    ))
+                    )
+                }
+            </div>
         </div>
     );
 }
@@ -155,5 +170,10 @@ const styles = {
     justifyContent: 'center',
     flexShrink: 0,
     transition: 'all 0.2s ease'
-  }
+  },
+  scrollList: {
+  maxHeight: '250px',
+  overflowY: 'auto',
+  paddingRight: '8px',
+}
 };

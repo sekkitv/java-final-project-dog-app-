@@ -21,10 +21,10 @@ const createCustomIcon = (emoji) => {
 };
 
 export const MAP_ICONS = {
-  DOG_PARK: createCustomIcon('🐶'),  
-  POOP_BAGS: createCustomIcon('💩'),
-  WATER: createCustomIcon('💧'),
-  FRIENDLY_BUSINESS: createCustomIcon('☕'),
+  MEETUP: createCustomIcon('🐶'),  
+  POOP_BAGS_SPOT: createCustomIcon('💩'),
+  WATER_SPOT: createCustomIcon('💧'),
+  DOG_FRIENDLY_BUSINESS: createCustomIcon('☕'),
   SELECTED_LOCATION: createCustomIcon('🎯'),
   DEFAULT: createCustomIcon('📍'),
 };

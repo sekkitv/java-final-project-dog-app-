@@ -12,8 +12,14 @@ export default function NotificationBell () {
   const [notificationBtn, setNotificationBtn] = useState(false);
   const { notifications = [], markAsRead, setActiveTab } = useApp();
         
-          
-  const unreadCount = notifications.filter((item) => !item.isRead).length;
+  const safeNotifications = Array.isArray(notifications)
+    ? notifications
+    : (notifications?.content || notifications?.data || []);
+
+  const unreadCount = safeNotifications.filter((item) => {
+  const isRead = item.isRead ?? item.read ?? item.is_read ?? false;
+  return !isRead;
+}).length;
 
 
   /**
@@ -71,28 +77,36 @@ export default function NotificationBell () {
                   <div style={styles.notificationContainer}>
                       <h2>notifications</h2>
                       <div style={styles.divider} />
-                          {notifications.length === 0 ? 
+                          {notifications.length === 0 ? (
                       
-                              <div>no notification yet</div>
-                              :
-                              notifications.map((item) => (
-                              <div 
-                              key={item.id}
-                              onClick={() => handleNotificationClick(item)}
-                              style={{
-                                      ...styles.notificationItem,
-                                      backgroundColor: item.isRead ? '#ffffff' : '#fff9f5' 
-                                      }}>
-                                  <span style={styles.itemIcon}>{getNotificationIcon(item.type)}</span>
-                                  <div style={styles.itemContent}>
-                                      <div style={styles.itemHeader}>
-                                          <span style={styles.itemTitle}>{item.title}</span>
-                                          <span style={styles.itemTime}>{getTimeAgo(item.createdAt)}</span>
+                                <div>no notification yet</div>
+                              ):(
+                                safeNotifications.map((item, index) => {
+                                  const notifId = item.notificationId || item.notification_id || item.id || index;
+                                  const isRead = item.isRead ?? item.read ?? item.is_read ?? false;
+                                  const time = item.createdAt || item.created_at;
+                                  const bodyText = item.body || item.message || item.content;
+
+                                  return (
+                                      <div 
+                                      key={notifId}
+                                      onClick={() => handleNotificationClick(item)}
+                                      style={{
+                                              ...styles.notificationItem,
+                                              backgroundColor: isRead ? '#ffffff' : '#fff9f5' 
+                                              }}>
+                                          <span style={styles.itemIcon}>{getNotificationIcon(item.type)}</span>
+                                          <div style={styles.itemContent}>
+                                              <div style={styles.itemHeader}>
+                                                  <span style={styles.itemTitle}>{item.title}</span>
+                                                  <span style={styles.itemTime}>{getTimeAgo(time)}</span>
+                                              </div>
+                                          <div style={styles.itemBody}>{bodyText}</div>
                                       </div>
-                                  <div style={styles.itemBody}>{item.body}</div>
-                              </div>
-                      </div>
-                      ))}
+                                    </div>
+                                );
+                      })
+                    )}
                   </div>
               )
           }

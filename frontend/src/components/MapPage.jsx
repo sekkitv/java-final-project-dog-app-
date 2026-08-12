@@ -8,7 +8,6 @@ import ProfileSidebar from './ProfileSidebar'
 import { MAP_ICONS, getHangoutIcon } from '../constants/mapIcons';
 
 
-
 /**
  * Controller component to fly map view to target coordinates
  */
@@ -47,10 +46,10 @@ function LocationPicker({ onLocationSelect }) {
 
 // Available event categories for map creation
 const EVENT_TYPES = [
-  { id: 'Meetup', label: 'Meetup', icon: '🐕' },
-  { id: 'Business', label: 'Dog-friendly business', icon: '☕' },
-  { id: 'Water', label: 'Water spot', icon: '💧' },
-  { id: 'Bags', label: 'Poop bags', icon: '🧴' },
+  { id: 'MEETUP', label: 'Meetup', icon: '🐕' },
+  { id: 'DOG_FRIENDLY_BUSINESS', label: 'Dog-friendly business', icon: '☕' },
+  { id: 'WATER_SPOT', label: 'Water spot', icon: '💧' },
+  { id: 'POOP_BAGS_SPOT', label: 'Poop bags', icon: '🧴' },
 ];
 
 /**
@@ -68,14 +67,14 @@ export default function MapPage() {
   const [myHangouts, setMyHangouts] = useState([]);
   const [centerTrigger, setCenterTrigger] = useState(0);
   const [formData, setFormData] = useState({
-    type: 'Meetup',
+    activityType: 'MEETUP',
     title: '',
-    organizer: '',
-    dateTime: '',
-    lat: '32.182177917609735',
-    lng: '34.93094514609965',
+    eventTime: '',
+    latitude: '32.182177917609735',
+    longitude: '34.93094514609965',
     description: ''
   });
+    
 
   // Request browser geolocation on initial mount
   useEffect(() => {
@@ -92,19 +91,27 @@ export default function MapPage() {
   }, []);
 
   // Fetch active hangouts from API
+  
+  
   useEffect(() => {
-    const loadHangouts = async () => {
+    let ignore = false;
+    const loadHangouts = async (showLoading = false) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         const data = await api.fetchHangouts();
         setHangouts(data || []);
       } catch (err) {
         console.error('Failed to fetch hangouts:', err);
       } finally {
+       if (!ignore) {
         setLoading(false);
+      }
       }
     };
     loadHangouts();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
  
@@ -120,34 +127,37 @@ export default function MapPage() {
       alert('Please enter a title');
       return;
     }
-
+    let formattedEventTime = null;
+    if (formData.eventTime) {
+      const parsedDate = new Date(formData.eventTime);
+      if (!isNaN(parsedDate.getTime())) {
+        formattedEventTime = parsedDate.toISOString();
+      }
+    }
     try {
       const newEvent = {
         title: formData.title,
-        type: formData.type,
-        organizer: formData.organizer || 'Anonymous',
-        dateTime: formData.dateTime || 'Soon',
-        locationName: `Location: ${Number(formData.lat).toFixed(4)}, ${Number(formData.lng).toFixed(4)}`,
-        lat: parseFloat(formData.lat),
-        lng: parseFloat(formData.lng),
-        description: formData.description
+        activityType: formData.activityType || 'MEETUP',
+        eventTime: formattedEventTime,
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
+        description: formData.description || null
       };
 
-      const savedEvent =await api.createHangout(newEvent);
-      const eventWithId = { ...newEvent, id: savedEvent?.id || Date.now().toString() };
-      setHangouts((prev) => [...prev, { ...newEvent, id: Date.now().toString() }]);
-      setMyHangouts((prev) => [...prev, eventWithId]);
+      await api.createHangout(newEvent);
+      const [allHangouts, myHangoutsData] = await Promise.all([api.fetchHangouts(),api.userHangouts()]);
+      setHangouts(allHangouts || []);
+      setMyHangouts(myHangoutsData || []);
       alert('Event added successfully! 🎉');
       setIsCreateModalOpen(false);
 
       // Submit new event form to API
       setFormData({
-        type: 'Meetup',
+        activityType: 'MEETUP',
         title: '',
-        organizer: '',
-        dateTime: '',
-        lat: userLocation[0].toString(),
-        lng: userLocation[1].toString(),
+        eventTime: '',
+        latitude: userLocation?.[0]?.toString() || '',
+        longitude: userLocation?.[1]?.toString() || '',
         description: ''
       });
     } catch (err) {
@@ -176,8 +186,8 @@ export default function MapPage() {
     const handleMapClick = (lat, lng) => {
       setFormData((prev) => ({
         ...prev,
-        lat: lat.toString(),
-        lng: lng.toString(),
+        latitude: lat.toString(),
+        longitude: lng.toString(),
       }));
       setIsSelectingLocation(false);
       setIsCreateModalOpen(true);
@@ -189,7 +199,55 @@ export default function MapPage() {
     setIsSelectingLocation(true);
   };
 
+ const formatEventTime = (timeString) => {
+      if (!timeString) return 'N/A';
+      if (!timeString.includes('T') && !timeString.includes('-')) {
+        return timeString;
+      }
+      const date = new Date(timeString);
+      if (isNaN(date.getTime())) return timeString;
 
+      return date.toLocaleString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+   };
+
+  
+   //Cancels the authenticated user's registration for a specific hangout event
+   const handleCancelSignup = async (hangoutId) => {
+      try {
+        await api.cancelHangoutSignup(hangoutId);
+        // Update the main hangouts list state
+        setHangouts((prevHangouts) =>
+          prevHangouts.map((item) => {
+            if (item.hangoutId === hangoutId) {
+              return {
+                ...item,
+                signedUp: false,
+                participantCount: Math.max(0, (item.participantCount || 1) - 1),
+              };
+            }
+            return item;
+          })
+        );
+        // Update active modal view if the currently selected hangout matches
+        if (selectedHangout && selectedHangout.hangoutId === hangoutId) {
+          setSelectedHangout((prev) => ({
+            ...prev,
+            signedUp: false,
+            participantCount: Math.max(0, (prev.participantCount || 1) - 1),
+          }));
+        }
+
+      } catch (error) {
+        console.error('Failed to cancel signup:', error);
+        alert('Failed to cancel signup. Please try again.');
+      }
+    };
 
   if (loading) {
     return <div style={styles.loading}>Loading map & hangouts...</div>;
@@ -250,8 +308,8 @@ export default function MapPage() {
                             />
 
                             {/* Marker for selected event location */}
-                            {formData.lat && formData.lng && (
-                              <Marker position={[parseFloat(formData.lat), parseFloat(formData.lng)]} 
+                            {formData.latitude && formData.longitude && (
+                              <Marker position={[parseFloat(formData.latitude), parseFloat(formData.longitude)]} 
                                       icon={MAP_ICONS.SELECTED_LOCATION}>
                                 <Popup>Selected Location 📍</Popup>
                               </Marker>
@@ -264,27 +322,51 @@ export default function MapPage() {
                             </Marker>
 
                             {/* Existing Hangout Markers */}
-                            {hangouts.map((item) => (
-                              <Marker 
-                                key={item.id} 
-                                position={[item.lat, item.lng]} 
-                                icon={getHangoutIcon ? getHangoutIcon(item.type) : (MAP_ICONS[item.type] || MAP_ICONS.DEFAULT)}
-                              >
-                                <Popup>
-                                  <div style={styles.popupContent}>
-                                    <h3 style={styles.popupTitle}>{item.title}</h3>
-                                    <p style={styles.popupText}>📍 {item.locationName}</p>
-                                    <p style={styles.popupText}>⏰ {item.dateTime}</p>
-                                    <button 
-                                      onClick={() => setSelectedHangout(item)}
-                                      style={styles.detailsBtn}
-                                    >
-                                      View Details & Join 🦴
-                                    </button>
-                                  </div>
-                                </Popup>
-                              </Marker>
-                            ))}
+                            {hangouts.filter((item) => {
+                                const lat = item.latitude;
+                                const lng = item.longitude;
+                                return lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng));
+                              })
+                              .map((item) => {
+                                const lat = Number(item.latitude);
+                                const lng = Number(item.longitude);
+                                const hangoutId = item.hangoutId;
+                                const hangoutType = item.activityType;
+                              return (
+                                <Marker 
+                                  key={hangoutId} 
+                                  position={[lat, lng]} 
+                                  icon={getHangoutIcon ? getHangoutIcon(hangoutType) : (MAP_ICONS[hangoutType] || MAP_ICONS.DEFAULT)}
+                                >
+                                 <Popup>
+                                    <div style={styles.popupContent}>
+                                      <h3 style={styles.popupTitle}>{item.title}</h3>
+                                      <p style={styles.popupText}> {item.description}</p>
+                                      {item.activityType === 'MEETUP' && (
+                                        <p style={styles.popupText}>Participants: {item.participantCount || 0}</p>
+                                      )}
+                                      <p style={styles.popupText}>⏰ {item.eventTime ?formatEventTime(item.eventTime): 'Always Open 🐾'}</p>
+                                      {item.activityType === 'MEETUP' && (
+                                        item.signedUp ? (
+                                          <button 
+                                            onClick={() => handleCancelSignup(item.hangoutId)}
+                                            style={styles.cancelBtn}
+                                          >
+                                            Cancel Signup ❌
+                                          </button>
+                                        ):(
+                                          <button 
+                                            onClick={() => setSelectedHangout(item)}
+                                            style={styles.detailsBtn}
+                                          >
+                                            View Details & Join 🦴
+                                          </button>)
+                                      )}
+                                    </div>
+                                  </Popup>
+                                </Marker>
+                              );
+                            })}
                           </MapContainer>
                         </div>
                       </div>
@@ -309,7 +391,7 @@ export default function MapPage() {
 
                         <div style={styles.locationBannerRow}>
                           <div style={styles.locationText}>
-                            📍 Location: {Number(formData.lat).toFixed(4)}, {Number(formData.lng).toFixed(4)}
+                            📍 Location: {Number(formData.latitude).toFixed(4)}, {Number(formData.longitude).toFixed(4)}
                           </div>
                           <button 
                             type="button" 
@@ -324,12 +406,12 @@ export default function MapPage() {
                           <label style={styles.label}>What type?</label>
                           <div style={styles.typeGrid}>
                             {EVENT_TYPES.map((typeObj) => {
-                              const isSelected = formData.type === typeObj.id;
+                              const isSelected = formData.activityType === typeObj.id;
                               return (
                                 <button
                                   key={typeObj.id}
                                   type="button"
-                                  onClick={() => handleInputChange('type', typeObj.id)}
+                                  onClick={() => handleInputChange('activityType', typeObj.id)}
                                   style={{
                                     ...styles.typeBtn,
                                     ...(isSelected ? styles.typeBtnSelected : {})
@@ -350,22 +432,17 @@ export default function MapPage() {
                             onChange={(e) => handleInputChange('title', e.target.value)}
                             style={styles.input}
                           />
-
-                          <label style={styles.label}>Your name</label>
-                          <input
-                            type="text"
-                            value={formData.organizer}
-                            onChange={(e) => handleInputChange('organizer', e.target.value)}
-                            style={styles.input}
-                          />
-
-                          <label style={styles.label}>When?</label>
-                          <input
-                            type="datetime-local"
-                            value={formData.dateTime}
-                            onChange={(e) => handleInputChange('dateTime', e.target.value)}
-                            style={styles.input}
-                          />
+                          {formData.activityType === 'MEETUP' && (
+                            <div style={styles.inputGroup}>
+                              <label style={styles.label}>When?</label>
+                              <input
+                                type="datetime-local"
+                                value={formData.eventTime}
+                                onChange={(e) => handleInputChange('eventTime', e.target.value)}
+                                style={styles.input}
+                              />
+                            </div>
+                          )}
 
                           <label style={styles.label}>Description (optional)</label>
                           <textarea
@@ -398,16 +475,16 @@ export default function MapPage() {
                 <div style={styles.modalOverlay}>
                   <div style={styles.modalCard}>
                     <h2 style={styles.modalTitle}>{selectedHangout.title}</h2>
-                    <p style={styles.modalText}><b>Organizer:</b> {selectedHangout.organizer}</p>
-                    <p style={styles.modalText}><b>When:</b> {selectedHangout.dateTime}</p>
-                    <p style={styles.modalText}><b>Location:</b> {selectedHangout.locationName}</p>
+                    <p style={styles.modalText}><b>Organizer:</b> {selectedHangout.organizerName}</p>
+                    <p style={styles.modalText}><b>When:</b> {formatEventTime(selectedHangout.eventTime)}</p>
+                    <p style={styles.modalText}><b>Participantcs:</b> {selectedHangout.participantCount}</p>
                     <p style={styles.modalDescription}>"{selectedHangout.description}"</p>
                     
                     <div style={styles.modalActions}>
                       <button 
                         onClick={async () => {
                           try {
-                            await api.signupHangout(selectedHangout.id);
+                            await api.signupHangout(selectedHangout.hangoutId);
                             setMyHangouts((prev) => {
                               const exists = prev.some(item => item.id === selectedHangout.id);
                               return exists ? prev : [...prev, selectedHangout];
@@ -443,7 +520,7 @@ export default function MapPage() {
 
 const styles = {
   mainPageWrapper: {
-    display: 'flex',
+    display: 'flex', 
     flexDirection: 'row',
     alignItems: 'stretch',
     justifyContent: 'center',
@@ -690,6 +767,12 @@ const styles = {
     flexDirection: 'column',
     gap: '6px'
   },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    marginBottom: '16px',
+  },
   label: {
     fontSize: '12px',
     fontWeight: '700',
@@ -793,8 +876,8 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
     whiteSpace: 'nowrap'
-  }
- 
+  },
+
  
   
 };

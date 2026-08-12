@@ -2,30 +2,53 @@
 
 
 export default function EventsList({ hangouts , onSelectHangout}) {
+  const formatEventTime = (timeString) => {
+      if (!timeString) return 'N/A';
+      if (!timeString.includes('T') && !timeString.includes('-')) {
+        return timeString;
+      }
+      const date = new Date(timeString);
+      if (isNaN(date.getTime())) return timeString;
+
+      return date.toLocaleString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+   };
+  const meetups = hangouts.filter((item) => item.activityType === 'MEETUP');
   return (
     <div style={styles.container}>
      
       <h2 style = {styles.title}>Events in your area</h2>
       <p style = {styles.subtitle}>Upcoming meetups near you</p>
       <div style={styles.divider} />
-       {hangouts.length === 0 ? 
-        (<div style = {styles.emptyText}>No meetups yet</div>)
-        :
-        (hangouts.map((item) => (
-          <div 
-          key={item.id}
-          onClick={() => onSelectHangout && onSelectHangout(item)}
-          style={styles.card}
-          > 
-            <div style = {styles.cardTitle}>title: {item.title}</div>
-            <div style = {styles.cardText}>location: {item.locationName}</div>
-            <div style = {styles.cardText}>time: {item.dateTime}</div>
-          </div>))
-        )
-      }
-      
+      <div style={styles.scrollList}>
+        {meetups.length === 0 ? (
+              <div style={styles.emptyText}>No meetups yet</div>
+            ) : (
+              meetups.map((item, index) => {
+                const hangoutId = item.hangoutId || index;
+                const desc = item.description || 'No description provided';
+                const time = item.eventTime || 'N/A';
+                
 
-      
+                return (
+                  <div 
+                    key={hangoutId}
+                    onClick={() => onSelectHangout && onSelectHangout(item)}
+                    style={styles.card}
+                  > 
+                    <div style={styles.cardTitle}>{item.title}</div>
+                    <div style={styles.cardText}>{desc}</div>
+                    <div style={styles.cardText}>{formatEventTime(time)}</div>
+                  </div>
+                );
+              })
+            )}
+        </div>
     </div>
   );
 }
@@ -76,10 +99,18 @@ const styles = {
   cardTitle: {
     fontWeight: 'bold',
     fontSize: '14px',
-    color: '#5C3E21'
+    color: '#5C3E21',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   cardText: {
     fontSize: '12px',
     color: '#666'
-  }
+  },
+  scrollList: {
+  maxHeight: '575px',
+  overflowY: 'auto',
+  paddingRight: '6px',
+}
 };

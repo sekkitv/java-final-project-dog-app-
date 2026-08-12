@@ -50,7 +50,7 @@ export const AppProvider = ({ children }) => {
     const loadUserNotifications = async () => {
         try {
             const data = await api.fetchNotifications();
-            setNotifications(data);
+            setNotifications(data.notifications || []);
         }
         catch(e){
             console.error('Failed to fetch notifications:' , e);
