@@ -1,7 +1,7 @@
-import L from 'leaflet';
+import L from "leaflet";
 
 const createCustomIcon = (emoji) => {
- return L.divIcon({
+  return L.divIcon({
     html: `
       <div style="
         font-size: 28px;
@@ -13,7 +13,7 @@ const createCustomIcon = (emoji) => {
         ${emoji}
       </div>
     `,
-    className: 'custom-clean-marker',
+    className: "custom-clean-marker",
     iconSize: [30, 30],
     iconAnchor: [15, 15],
     popupAnchor: [0, -15],
@@ -21,12 +21,12 @@ const createCustomIcon = (emoji) => {
 };
 
 export const MAP_ICONS = {
-  MEETUP: createCustomIcon('🐶'),  
-  POOP_BAGS_SPOT: createCustomIcon('💩'),
-  WATER_SPOT: createCustomIcon('💧'),
-  DOG_FRIENDLY_BUSINESS: createCustomIcon('☕'),
-  SELECTED_LOCATION: createCustomIcon('🎯'),
-  DEFAULT: createCustomIcon('📍'),
+  MEETUP: createCustomIcon("🐶"),
+  POOP_BAGS_SPOT: createCustomIcon("💩"),
+  WATER_SPOT: createCustomIcon("💧"),
+  DOG_FRIENDLY_BUSINESS: createCustomIcon("☕"),
+  SELECTED_LOCATION: createCustomIcon("🎯"),
+  DEFAULT: createCustomIcon("📍"),
 };
 
 export const getHangoutIcon = (type) => {

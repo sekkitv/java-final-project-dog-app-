@@ -1,9 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import  { createContext, useState ,useEffect} from 'react';
-import {api} from '../services/api'
+import { createContext, useState, useEffect } from "react";
+import { api } from "../services/api";
 // Create and export the context so useApp.js can import it
 export const AppContext = createContext();
-
 
 /**
  * AppProvider Component
@@ -12,20 +11,21 @@ export const AppContext = createContext();
  */
 export const AppProvider = ({ children }) => {
   // Lazy initialization ensures localStorage is read only on initial mount
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [token, setToken] = useState(
+    () => localStorage.getItem("token") || null,
+  );
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [activeTab, setActiveTab] = useState('map');
+  const [activeTab, setActiveTab] = useState("map");
 
   // Strict boolean indicating user authentication status
   const isAuthenticated = !!token;
-
 
   /**
    * Persists authentication token to browser storage and updates global state
    */
   const login = (newToken, userData = null) => {
-    localStorage.setItem('token', newToken);
+    localStorage.setItem("token", newToken);
     setToken(newToken);
     if (userData) {
       setUser(userData);
@@ -36,7 +36,7 @@ export const AppProvider = ({ children }) => {
    * Clears session data from both storage and state
    */
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
   };
@@ -48,14 +48,13 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated) return;
     const loadUserNotifications = async () => {
-        try {
-            const data = await api.fetchNotifications();
-            setNotifications(data.notifications || []);
-        }
-        catch(e){
-            console.error('Failed to fetch notifications:' , e);
-        }
-    }
+      try {
+        const data = await api.fetchNotifications();
+        setNotifications(data.notifications || []);
+      } catch (e) {
+        console.error("Failed to fetch notifications:", e);
+      }
+    };
     loadUserNotifications();
     const intervalId = setInterval(loadUserNotifications, 5000);
     return () => clearInterval(intervalId);
@@ -67,13 +66,13 @@ export const AppProvider = ({ children }) => {
   const markAsRead = async (id) => {
     try {
       await api.markNotificationsRead(id);
-      setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, isRead: true } : item)));
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, isRead: true } : item)),
+      );
     } catch (e) {
-      console.error('Failed to mark read:', e);
+      console.error("Failed to mark read:", e);
     }
   };
-
-
 
   return (
     <AppContext.Provider
