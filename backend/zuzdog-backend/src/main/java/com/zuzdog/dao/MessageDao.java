@@ -68,21 +68,6 @@ public class MessageDao {
         return jdbcTemplate.query(sql, MESSAGE_ROW_MAPPER, userA, userB, userB, userA);
     }
 
-    // Most recent message from each conversation so we could present in before we enter the conv at front . 
-    public List<ChatMessage> findConversations(long userId) {
-        String sql = """
-                SELECT DISTINCT ON (other_user_id) message_id, sender_id, receiver_id, body, sent_at
-                FROM (
-                    SELECT message_id, sender_id, receiver_id, body, sent_at,
-                           CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS other_user_id
-                    FROM messages
-                    WHERE sender_id = ? OR receiver_id = ?
-                ) t
-                ORDER BY other_user_id, sent_at DESC
-                """;
-        return jdbcTemplate.query(sql, MESSAGE_ROW_MAPPER, userId, userId, userId);
-    }
-
     // One summary row per conversation partner for the conversation list screen.
     // A single query that:
     //   - uses DISTINCT ON (other_user_id) to pick the latest message per partner

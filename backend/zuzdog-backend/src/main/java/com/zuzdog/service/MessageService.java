@@ -53,9 +53,4 @@ public class MessageService {
     public List<ConversationSummary> getConversationSummaries(long userId) {
         return messageDao.findConversationSummaries(userId);
     }
-
-    // Most recent message per conversation partner, for the conversation list screen.
-    public List<ChatMessage> getConversations(long userId) {
-        return messageDao.findConversations(userId);
-    }
 }

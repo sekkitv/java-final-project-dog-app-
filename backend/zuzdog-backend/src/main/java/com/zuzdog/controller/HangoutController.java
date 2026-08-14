@@ -7,6 +7,7 @@ import com.zuzdog.service.HangoutService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,5 +52,20 @@ public class HangoutController {
     public HangoutResponse signup(HttpServletRequest request, @PathVariable long id) {
         Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);
         return hangoutService.signup(id, userId);
+    }
+
+    // Cancel the requesting user's signup. Idempotent: cancelling twice (or when
+    // never signed up) is a no-op and still returns the current hangout state.
+    @DeleteMapping("/api/hangouts/{id}/signup")
+    public HangoutResponse cancelSignup(HttpServletRequest request, @PathVariable long id) {
+        Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);
+        return hangoutService.cancelSignup(id, userId);
+    }
+
+    // List only the hangouts the requesting user is signed up for.
+    @GetMapping("/api/hangouts/mine")
+    public List<HangoutResponse> getMyHangouts(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);
+        return hangoutService.getUserHangouts(userId);
     }
 }

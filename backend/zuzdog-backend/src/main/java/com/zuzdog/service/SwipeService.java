@@ -6,7 +6,7 @@ import com.zuzdog.messaging.SwipeProducer;
 import com.zuzdog.model.SwipeAction;
 import org.springframework.stereotype.Service;
 
-// Business logic layer for swipe operations.
+//  logic  for swipe operations.
 // Coordinates DAOs and async messaging to implement swipe/match logic.
 // UP swipes go async via JMS queue; DOWN swipes are persisted immediately.
 @Service
@@ -22,8 +22,7 @@ public class SwipeService {
         this.swipeProducer = swipeProducer;
     }
 
-    // Process a swipe action: UP goes async (queue), DOWN goes sync (direct DB insert).
-    // UP swipes trigger match detection in SwipeConsumer; DOWN swipes have no match.
+    // Process a swipe action (UP or DOWN) from userId to targetId.
     public void processSwipe(long userId, long targetId, SwipeAction action) {
         if (action == SwipeAction.UP) {
             swipeProducer.publishUpSwipe(userId, targetId);

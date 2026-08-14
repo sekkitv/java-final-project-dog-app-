@@ -59,10 +59,10 @@ public class NotificationDao {
         return key.longValue();
     }
 
-    // all notifications for a user, newest first, used by the notifications API endpoint
+    // user notfications but 50 max most recent 
     public List<Notification> findForUser(long userId) {
         // we use ? placeholder for paramater to prevent SQL injection, and pass userID as a paramater to the query.
-        String sql = SELECT_ALL_COLUMNS + " WHERE user_id = ? ORDER BY created_at DESC"; 
+        String sql = SELECT_ALL_COLUMNS + " WHERE user_id = ? ORDER BY created_at DESC LIMIT 50";
         return jdbcTemplate.query(sql, NOTIFICATION_ROW_MAPPER, userId);
     }
 
