@@ -15,11 +15,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-// Business logic for hangouts. Three actions:
+//  logic for hangouts Three main things :
 // list all hangouts with per-user stats (participantCount + isUserSignedUp)
 // create a hangout
-// sign the requesting user up for a hangout
-// The service is the only layer that talks to UserDao; the DAOs only know SQL.
+// sign user up for a hangout
 @Service
 public class HangoutService {
 
@@ -38,16 +37,15 @@ public class HangoutService {
         this.notificationService = notificationService;
     }
 
-    // GET /api/hangouts  every hangout, newest first, enriched with the user`s signup state.
+    // GET /api/hangouts  every hangout so we could put on map
     public List<HangoutResponse> getAllHangouts(long userId) {
         return hangoutDao.findAll(userId).stream()
                 .map(HangoutService::toResponse)
                 .toList();
     }
 
-    // POST /api/hangouts — create a new hangout on behalf of the authenticated user.
-    // organizerName is looked up from the users row so the client cannot forge it.
-    // orgnaizerId is the Id of the authinicated user
+    // POST /api/hangouts — create a new hangout 
+   
     public HangoutResponse createHangout(long organizerId, CreateHangoutRequest request) {
         Optional<User> organizer = userDao.findById(organizerId);
         if (organizer.isEmpty()) {
@@ -76,9 +74,8 @@ public class HangoutService {
         return toResponse(created.get());
     }
 
-    // POST /api/hangouts/{id}/signup — add the requesting user to the participant list.
-    // Idempotent: signing up twice is a no-op. Returns the updated hangout so the caller
-    // sees the new participantCount and isUserSignedUp=true.
+    // POST /api/hangouts/{id}/signup — add the user to the participant list 
+
     public HangoutResponse signup(long hangoutId, long userId) {
         Optional<Hangout> existing = hangoutDao.findById(hangoutId, userId);
         if (existing.isEmpty()) {
@@ -98,10 +95,32 @@ public class HangoutService {
         return toResponse(result);
     }
 
-    // map a Hangout model to the response DTO. activityType is flattened to its String name.
-    // we need it so the controller can return JSON object with the right fields from the model.
-    // we also choose what to return when some fields are null
-    // HangoutRespone is taken from the DTO.
+    // DELETE /api/hangouts/{id}/signup — remove the requesting user from the list
+    public HangoutResponse cancelSignup(long hangoutId, long userId) {
+        // make sure the hangout itself exists before touching signups
+        Optional<Hangout> existing = hangoutDao.findById(hangoutId, userId);
+        if (existing.isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Hangout not found");
+        }
+        // deletes the (hangoutId, userId) row if it exists; 0 rows affected if the
+        
+        participantDao.remove(hangoutId, userId);
+        
+        Optional<Hangout> updated = hangoutDao.findById(hangoutId, userId);
+        Hangout result = updated.orElse(existing.get());
+        return toResponse(result);
+    }
+
+    // GET /api/hangouts/mine — every hangout the requesting user is signed up for not all hangouts 
+    public List<HangoutResponse> getUserHangouts(long userId) {
+        // same shape as getAllHangouts() but  filtered DAO query
+        
+        return hangoutDao.findSignedUpByUser(userId).stream()
+                .map(HangoutService::toResponse)
+                .toList();
+    }
+
+    //hangout repsonse is a dto that we send to the frontend, it has all the needefeild of hangout
     private static HangoutResponse toResponse(Hangout h) {
         return new HangoutResponse(
                 h.getHangoutId(),
@@ -118,8 +137,7 @@ public class HangoutService {
                 h.isUserSignedUp());
     }
 
-    // parse the activityType string from the request. null/blank defaults to MEETUP.
-    // an unknown value is a 400 — simpler than silently picking a default for a typo.
+    // check if things/strings are ok 
     private static HangoutActivityType parseActivityType(String s) {
         if (s == null || s.isBlank()) {
             return HangoutActivityType.MEETUP;

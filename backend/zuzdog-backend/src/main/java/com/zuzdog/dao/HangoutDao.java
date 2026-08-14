@@ -98,4 +98,23 @@ public class HangoutDao {
         List<Hangout> rows = jdbcTemplate.query(sql, HANGOUT_ROW_MAPPER, userId, hangoutId);
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
+
+    // sql querey to find all hangouts the user is signed up for 
+    private static final String SELECT_SIGNED_UP = """
+            SELECT h.hangout_id, h.organizer_user_id, h.title, h.description, h.organizer_name,
+                   h.latitude, h.longitude, h.event_time, h.activity_type, h.created_at,
+                   COUNT(p.user_id) AS participant_count,
+                   TRUE AS is_user_signed_up
+            FROM hangouts h
+            JOIN hangout_participants me ON me.hangout_id = h.hangout_id AND me.user_id = ?
+            LEFT JOIN hangout_participants p ON p.hangout_id = h.hangout_id
+            GROUP BY h.hangout_id
+            ORDER BY h.event_time NULLS LAST, h.created_at DESC
+            """;
+
+
+    // returns all hangouts the user is signed for 
+    public List<Hangout> findSignedUpByUser(long userId) {
+        return jdbcTemplate.query(SELECT_SIGNED_UP, HANGOUT_ROW_MAPPER, userId);
+    }
 }
