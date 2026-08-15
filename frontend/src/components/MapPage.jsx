@@ -538,7 +538,7 @@ export default function MapPage() {
                         await api.signupHangout(selectedHangout.hangoutId);
                         setMyHangouts((prev) => {
                           const exists = prev.some(
-                            (item) => item.id === selectedHangout.id,
+                            (item) => item.hangoutId === selectedHangout.hangoutId,
                           );
                           return exists ? prev : [...prev, selectedHangout];
                         });

@@ -10,7 +10,7 @@ export default function ProfileCard({ profile }) {
     const [viewMode, setViewMode] = useState('owner');
 
     if (!profile) return null;
-
+    {console.log(profile)}
     const defaultAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80';
     const defaultDogAvatar = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80';
 

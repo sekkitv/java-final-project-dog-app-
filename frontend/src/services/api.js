@@ -115,28 +115,7 @@ export const api = {
     apiRequest(`/api/hangouts/${id}/signup`, { method: "POST" }),
   cancelHangoutSignup: (id) =>
     apiRequest(`/api/hangouts/${id}/signup`, { method: "DELETE" }),
-  // userHangouts: () => apiRequest('/api/hangouts/my-signups'),
-  // MOCK
-  userHangouts: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            hangoutId: "h1",
-            title: "Golden Retrievers Playdate 🎾",
-            description: "HaYarkon Dog Park",
-            eventTime: "Today, 17:00",
-          },
-          {
-            hangoutId: "h2",
-            title: "Golden Retrievers Playdate 🎾",
-            description: "HaYarkon Dog Park",
-            eventTime: "Today, 17:00",
-          },
-        ]);
-      }, 200);
-    });
-  },
+  userHangouts: () => apiRequest("/api/hangouts/mine"),
 
   //Notifications
   fetchNotifications: () => apiRequest("/api/notifications"),

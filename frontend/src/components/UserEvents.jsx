@@ -32,7 +32,7 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
     }
     try {
       await api.cancelHangoutSignup(id);
-      setMyHangouts((prev) => prev.filter((item) => item.id !== id));
+      setMyHangouts((prev) => prev.filter((item) => item.hangoutId !== id));
       alert("Signup canceled successfully");
     } catch (err) {
       console.error("Failed to cancel hangout signup:", err);
@@ -84,7 +84,7 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
                 </div>
               </div>
               <button
-                onClick={() => handleCancelSignup(item.hangoutId, item.title)}
+                onClick={() => handleCancelSignup(item.hangoutId, item.description)}
                 style={styles.cancelBtn}
                 title="Cancel signup"
               >
