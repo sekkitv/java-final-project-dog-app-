@@ -15,7 +15,7 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to the bottom of the chat when new messages arrive
+  // Auto scroll to the bottom of the chat when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -76,7 +76,7 @@ export default function MessagesPage() {
         c.id === conv.id ? { ...c, unread: false, unreadCount: 0 } : c,
       ),
     );
-    const targetId = conv.id || conv.otherUserId || conv.userId;
+    const targetId = conv.id;
     if (targetId) {
       try {
         const history = await api.fetchMessages(targetId);
@@ -95,8 +95,7 @@ export default function MessagesPage() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
-    const recipientId =
-      selectedChat.id || selectedChat.otherUserId || selectedChat.userId;
+    const recipientId = selectedChat.id;
     const messageText = newMessage;
     setNewMessage("");
 
@@ -113,7 +112,7 @@ export default function MessagesPage() {
     // Update the last message preview in the sidebar
     setConversations((prev) =>
       prev.map((conv) => {
-        const convId = conv.id || conv.otherUserId || conv.userId;
+        const convId = conv.id;
         if (convId === recipientId) {
           return {
             ...conv,
@@ -124,12 +123,10 @@ export default function MessagesPage() {
       }),
     );
     try {
-      if (api.sendMessage) {
-        await api.sendMessage(recipientId, messageText);
-        const updatedHistory = await api.fetchMessages(recipientId);
-        if (updatedHistory) {
-          setMessages(updatedHistory);
-        }
+      await api.sendMessage(recipientId, messageText);
+      const updatedHistory = await api.fetchMessages(recipientId);
+      if (updatedHistory) {
+        setMessages(updatedHistory);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
@@ -152,9 +149,8 @@ export default function MessagesPage() {
         ) : (
           <div style={styles.conversationsList}>
             {conversations.map((conv) => {
-              const convKey = conv.id || conv.otherUserId || conv.userId;
-              const isSelected =
-                (selectedChat?.otherUserId || selectedChat?.userId) === convKey;
+              const convKey = conv.id;
+              const isSelected = selectedChat?.id === convKey;
               return (
                 <div
                   key={convKey}
@@ -205,7 +201,7 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
-      
+
       {/* Main Chat Area */}
       <div style={styles.chatSection}>
         {selectedChat ? (
@@ -221,10 +217,7 @@ export default function MessagesPage() {
 
             <div style={styles.messagesList}>
               {messages.map((msg) => {
-                const targetId =
-                  selectedChat.id ||
-                  selectedChat.otherUserId ||
-                  selectedChat.userId;
+                const targetId = selectedChat.id;
                 const isMe = msg.sender === "me" || msg.senderId !== targetId;
                 return (
                   <div
@@ -240,6 +233,7 @@ export default function MessagesPage() {
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} />
             </div>
 
             <form onSubmit={handleSendMessage} style={styles.inputForm}>
