@@ -1,5 +1,5 @@
--- we will create 5 main tables for out application - 
--- Users, dogs, swipes, matches, messages
+-- we will create 7 main tables for out application - 
+-- Users, dogs, swipes, matches, messages, notifications, hangouts
 
 CREATE TABLE IF NOT EXISTS users (
     user_id       BIGSERIAL     PRIMARY KEY,   -- bigserial is used automatically to give a unique id for each user, also gives us a bigger range of values
@@ -55,8 +55,52 @@ CREATE TABLE IF NOT EXISTS messages (
     receiver_id BIGINT          NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
     body        TEXT            NOT NULL,
     sent_at     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    read_at     TIMESTAMPTZ, -- NULL = unread, set when the receiver fetches the thread
     CHECK (sender_id <> receiver_id),
     CHECK (char_length(trim(body)) > 0) -- we do it to reject empty messages and pure whitespaces.
+);
+
+-- hangouts table stores group events created by a user on the map.
+-- organizer_name is denormalised here on purpose: it is a snapshot of the organizer`s username
+-- at creation time, so the map list keeps showing a name even if the organizer later renames
+-- their account. activity_type is stored as a VARCHAR with a CHECK constraint (same pattern
+-- as swipes.action and notifications.type), not as a native PG enum.
+CREATE TABLE IF NOT EXISTS hangouts (
+    hangout_id          BIGSERIAL      PRIMARY KEY,
+    organizer_user_id   BIGINT         NOT NULL REFERENCES users (user_id) ON DELETE CASCADE, --when deleting a user their hangouts are deleted too
+    title               VARCHAR(120)   NOT NULL,
+    description         TEXT           NOT NULL DEFAULT '',
+    organizer_name      VARCHAR(80)   NOT NULL, -- snapshot of the organizer`s username
+    latitude            DOUBLE PRECISION NOT NULL, -- event latitude for the map pin
+    longitude           DOUBLE PRECISION NOT NULL, -- event longitude for the map pin
+    event_time          TIMESTAMPTZ,  -- nullable: a hangout can be an always-open spot
+    activity_type       VARCHAR(32)   NOT NULL DEFAULT 'MEETUP' CHECK (activity_type IN ('MEETUP', 'DOG_FRIENDLY_BUSINESS', 'WATER_SPOT', 'POOP_BAGS_SPOT')),
+    created_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+);
+
+-- hangout_participants is the junction table for the many-to-many between hangouts and users.
+-- (hangout_id, user_id) is the natural primary key — a user can only be signed up once per hangout.
+CREATE TABLE IF NOT EXISTS hangout_participants (
+    hangout_id  BIGINT        NOT NULL REFERENCES hangouts (hangout_id) ON DELETE CASCADE, --when the hangout is deleted the signups go too
+    user_id     BIGINT        NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
+    signed_up_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (hangout_id, user_id)
+);
+
+-- notifications table stores in-app notifications for each user.
+-- each notification belongs to a user (user_id), has a type (MATCH, HANGOUT_JOIN, MESSAGE),
+-- an optional reference_id (points to the related match/message/hangout row, kept as a plain
+-- BIGINT and NOT a foreign key so we don`t break if the referenced row is cleaned up later),
+-- a title, a body, and timestamps. read_at stays NULL until the user opens the notification.
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id BIGSERIAL     PRIMARY KEY,
+    user_id         BIGINT        NOT NULL REFERENCES users (user_id) ON DELETE CASCADE, --when deleting a user the notification is deleted too
+    type            VARCHAR(20)   NOT NULL CHECK (type IN ('MATCH', 'HANGOUT_JOIN', 'MESSAGE')), --the kind of event that triggered the notification
+    reference_id    BIGINT, -- nullable: points to the related match/message/hangout row (kept loose on purpose)
+    title           VARCHAR(120)  NOT NULL,
+    body            TEXT          NOT NULL DEFAULT '',
+    created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+    read_at         TIMESTAMPTZ   -- NULL means unread, a timestamp means the user has seen it
 );
 
 --INDEXES--
@@ -79,3 +123,19 @@ CREATE INDEX IF NOT EXISTS idx_matches_user2 ON matches (user2_id);
 -- "Messages I sent" and "messages I received" in chronological order so we can display them in the chat interface
 CREATE INDEX IF NOT EXISTS idx_messages_pair ON messages (sender_id, receiver_id, sent_at);
 CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages (receiver_id, sent_at);
+
+-- "Notifications for a user" ordered newest first — used by findForUser(userId)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications (user_id, created_at DESC);
+
+-- "Unread notifications for a user" — used by countUnread(userId) and the WHERE clause of markAllRead(userId).
+-- partial index (only rows where read_at IS NULL) so the unread count query stays fast even when most rows are read.
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id) WHERE read_at IS NULL;
+
+-- "Hangouts by event time" — used by the map list to sort upcoming events
+CREATE INDEX IF NOT EXISTS idx_hangouts_event_time ON hangouts (event_time);
+
+-- "Hangouts by activity type" — used when the map filters by activity (MEETUP / DOG_FRIENDLY_BUSINESS / ...)
+CREATE INDEX IF NOT EXISTS idx_hangouts_activity_type ON hangouts (activity_type);
+
+-- "Hangouts a user signed up for" — used to list the user`s hangouts on their profile
+CREATE INDEX IF NOT EXISTS idx_hangout_participants_user ON hangout_participants (user_id);

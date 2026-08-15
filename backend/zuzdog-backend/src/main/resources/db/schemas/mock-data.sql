@@ -119,3 +119,75 @@ INSERT INTO messages (sender_id, receiver_id, body, sent_at) VALUES
     (4, 5, 'Mochi looks like trouble in the best way.',                                      NOW() - INTERVAL '1 day'),
     (5, 4, 'He really is. Sunny looks like the gentlest golden ever.',                       NOW() - INTERVAL '1 day' + INTERVAL '20 minutes'),
     (4, 5, 'She is. Want to meet up at the park this weekend?',                              NOW() - INTERVAL '23 hours');
+
+-- -----------------------------------------------------------------------------
+-- Notifications
+--   user_id 1 (maya) gets a MATCH notification for match (1,3),
+--   a MESSAGE notification for the latest message from noa (3),
+--   and a HANGOUT_JOIN notification (reference_id left NULL for the demo).
+--   user_id 3 (noa) gets the matching MATCH notification and a MESSAGE one.
+--   Some are pre-read (read_at set) and some unread (read_at NULL) so the
+--   countUnread / markAllRead behavior is visible after running init-db.ps1.
+--   reference_id is kept loose (plain BIGINT) — it points at the related row
+--   but is NOT enforced as a foreign key.
+-- -----------------------------------------------------------------------------
+INSERT INTO notifications (user_id, type, reference_id, title, body, created_at, read_at) VALUES
+    -- maya (1): match with noa (3). The matches table has no integer key, so reference_id is NULL for MATCH.
+    (1, 'MATCH',  NULL,
+        'New match!',
+        'You matched with noa_paws. Say hi!',
+        NOW() - INTERVAL '2 days',
+        NULL), -- unread
+    -- maya (1): last message from noa (3) arrived 2 days ago.
+    (1, 'MESSAGE', (SELECT message_id FROM messages WHERE sender_id = 3 AND receiver_id = 1 ORDER BY sent_at DESC LIMIT 1),
+        'New message from noa_paws',
+        'See you there!',
+        NOW() - INTERVAL '2 days' + INTERVAL '45 minutes',
+        NULL), -- unread
+    -- maya (1): someone joined a hangout she organized (demo, reference_id NULL).
+    (1, 'HANGOUT_JOIN', NULL,
+        'New RSVP',
+        'Someone joined your hangout.',
+        NOW() - INTERVAL '12 hours',
+        NOW()), -- already read
+    -- noa (3): mirror match notification for maya (1).
+    (3, 'MATCH', NULL,
+        'New match!',
+        'You matched with maya_tlv. Say hi!',
+        NOW() - INTERVAL '2 days',
+        NULL), -- unread
+    -- noa (3): a message from maya arrived earlier — mark it read so counts differ.
+    (3, 'MESSAGE', (SELECT message_id FROM messages WHERE sender_id = 1 AND receiver_id = 3 ORDER BY sent_at DESC LIMIT 1),
+        'New message from maya_tlv',
+        'Perfect. 10am by the dog beach?',
+        NOW() - INTERVAL '2 days' + INTERVAL '30 minutes',
+        NOW()); -- already read
+
+-- -----------------------------------------------------------------------------
+-- Hangouts
+--   3 events spread around Tel Aviv + one cross-country spot in Jerusalem.
+--   organizer_user_id uses the hardcoded user ids (1..10, see header comment).
+--   organizer_name is denormalised here as a snapshot of the organizer`s username.
+-- -----------------------------------------------------------------------------
+INSERT INTO hangouts (organizer_user_id, title, description, organizer_name, latitude, longitude, event_time, activity_type) VALUES
+    -- maya (1): park meetup at Yarkon
+    (1, 'Yarkon Park morning walk', 'Casual stroll by the dog beach. All sizes welcome.', 'maya_tlv',  32.0860, 34.7860, NOW() + INTERVAL '3 days', 'MEETUP'),
+    -- amir (4): a pet-friendly cafe
+    (4, 'Cafe Paws brunch', 'Dog-friendly cafe. Bring your pup, we`ll bring treats.', 'amir_gold', 32.0770, 34.7830, NOW() + INTERVAL '5 days', 'DOG_FRIENDLY_BUSINESS'),
+    -- dana (7): a water spot in Jerusalem
+    (7, 'Ein Karem water break', 'Shady water spot near the spring. Great for hot days.', 'dana_jer',  31.7950, 35.1880, NOW() + INTERVAL '1 week', 'WATER_SPOT')
+ON CONFLICT DO NOTHING;
+
+-- -----------------------------------------------------------------------------
+-- Hangout participants
+--   maya (1) and noa (3) both join the Yarkon Park meetup (hangout 1).
+--   lily (5) joins the cafe brunch (hangout 2).
+--   Nobody has joined the Jerusalem water spot yet (hangout 3) — keeps the
+--   participant_count for that one at 0 so the 0 -> 1 growth is visible when
+--   you sign up via the API in the DoD checks.
+-- -----------------------------------------------------------------------------
+INSERT INTO hangout_participants (hangout_id, user_id) VALUES
+    (1, 1),
+    (1, 3),
+    (2, 5)
+ON CONFLICT DO NOTHING;

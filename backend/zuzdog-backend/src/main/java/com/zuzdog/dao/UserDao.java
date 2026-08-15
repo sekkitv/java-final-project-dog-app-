@@ -108,4 +108,11 @@ public class UserDao {
                 "UPDATE users SET lat = ?, lng = ?, updated_at = NOW() WHERE user_id = ?",
                 lat, lng, userId);
     }
+
+    // update description + max distance for a user
+    public int updateProfile(long userId, String description, double maxDistance) {
+        return jdbcTemplate.update(
+                "UPDATE users SET description = ?, max_distance = ?, updated_at = NOW() WHERE user_id = ?",
+                description, maxDistance, userId);
+    }
 }

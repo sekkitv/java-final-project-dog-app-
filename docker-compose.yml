@@ -12,7 +12,7 @@ services:
       - zuzdog_pg_data:/var/lib/postgresql/data
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/init-postgresql.sql:/docker-entrypoint-initdb.d/1-init-postgresql.sql
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/mock-data.sql:/docker-entrypoint-initdb.d/2-mock-data.sql
-
+# container for each of us so we could run the activemq 
   message-broker:
     image: apache/activemq-classic:5.18.3
     container_name: zuzdog-mq

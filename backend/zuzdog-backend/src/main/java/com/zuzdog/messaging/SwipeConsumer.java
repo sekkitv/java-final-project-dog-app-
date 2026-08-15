@@ -4,6 +4,7 @@ import com.zuzdog.config.JmsConfig;
 import com.zuzdog.dao.MatchDao;
 import com.zuzdog.dao.SwipeDao;
 import com.zuzdog.model.SwipeAction;
+import com.zuzdog.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
@@ -18,11 +19,13 @@ public class SwipeConsumer {
 
     private final SwipeDao swipeDao;
     private final MatchDao matchDao;
+    private final NotificationService notificationService;
 
     //constructor build a swipe consumer obj 
-    public SwipeConsumer(SwipeDao swipeDao, MatchDao matchDao) {
+    public SwipeConsumer(SwipeDao swipeDao, MatchDao matchDao, NotificationService notificationService) {
         this.swipeDao = swipeDao;
         this.matchDao = matchDao;
+        this.notificationService = notificationService;
     }
 
 
@@ -46,11 +49,11 @@ public class SwipeConsumer {
         swipeDao.insert(senderId, targetId, SwipeAction.UP);
 
         if (ismatch) {
-            matchDao.insertMatch(senderId, targetId);
-            log.info("Match created between {} and {}", senderId, targetId);
-            
-            
-            // need to add after davies will finish the notify match function !!!!!
+            int rows = matchDao.insertMatch(senderId, targetId);
+            if (rows > 0) {
+                notificationService.notifyMatch(senderId, targetId);
+                log.info("Match created between {} and {}", senderId, targetId);
+            }
         }
     }
 }
