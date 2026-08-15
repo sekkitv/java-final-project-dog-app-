@@ -1,20 +1,12 @@
 import  { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import ProfileCard from ".//ProfileCard";
-=======
 import ProfileCard from "./ProfileCard";
->>>>>>> feature/ui-complete-pre-api
 import { api } from '../services/api';
 
 
 /**
  * MainApp Component
  * Fetches and displays profiles for swiping (LIKE / PASS). Handles swipe actions,
-<<<<<<< HEAD
- * advances the feed index, and refreshes conversations on new matches.
-=======
  * advances the feed index, and refreshes conversations on new matches
->>>>>>> feature/ui-complete-pre-api
  */
 export default function SwipesPage({ onMatchCreated }) {
   const [feed, setFeed] = useState([]);
@@ -25,22 +17,14 @@ export default function SwipesPage({ onMatchCreated }) {
   
   
   /**
-<<<<<<< HEAD
-   * Fetches initial feed data on component mount.
-=======
    * Fetches initial feed data on component mount
->>>>>>> feature/ui-complete-pre-api
    */
   useEffect(() => {
     async function loadFeed() {
       try {
         setLoading(true);
         const data = await api.fetchFeed();
-<<<<<<< HEAD
-        setFeed(data);
-=======
         setFeed(data.candidates || data);
->>>>>>> feature/ui-complete-pre-api
       } catch (err) {
         console.error('Failed to fetch feed:', err);
         setError('Failed to load profiles. Please try again later.');
@@ -53,30 +37,17 @@ export default function SwipesPage({ onMatchCreated }) {
   }, []);
 
   /**
-<<<<<<< HEAD
-   * Handles user swipe action (UP for LIKE, DOWN for PASS).
-   * Advances feed index immediately for responsive UI and submits choice to API.
-=======
    * Handles user swipe action (UP for LIKE, DOWN for PASS)
    * Advances feed index immediately for responsive UI and submits choice to API
->>>>>>> feature/ui-complete-pre-api
    */
   const handleSwipe = async (direction) => {
     const currentProfile = feed[currentIndex];
 
     if (!currentProfile) return;
-<<<<<<< HEAD
-    const action = direction === 'UP' ? 'LIKE' : 'PASS';
-
-    setCurrentIndex((prev) => prev + 1);
-    try {
-      const response = await api.postSwipe(currentProfile.id, action);
-=======
 
     setCurrentIndex((prev) => prev + 1);
     try {
       const response = await api.postSwipe(currentProfile.userId, direction);
->>>>>>> feature/ui-complete-pre-api
 
       // On match action, refresh conversation list for potential matches
       if (response?.isMatch) {
@@ -88,11 +59,7 @@ export default function SwipesPage({ onMatchCreated }) {
         }
       }
     } catch (err) {
-<<<<<<< HEAD
-      console.error(`Error processing ${action} swipe:`, err);
-=======
       console.error(`Error processing ${direction} swipe:`, err);
->>>>>>> feature/ui-complete-pre-api
     }
   };
   
@@ -118,10 +85,6 @@ export default function SwipesPage({ onMatchCreated }) {
 
   return (
     <div style={styles.mainContainer}>
-<<<<<<< HEAD
-      
-=======
->>>>>>> feature/ui-complete-pre-api
       <ProfileCard profile={currentProfile} />
 
      
@@ -190,9 +153,6 @@ const styles = {
     fontWeight: 'bold',
     boxShadow: '0 4px 10px rgba(255, 126, 95, 0.4)',
     transition: 'all 0.2s ease'
-<<<<<<< HEAD
-  }
-=======
   },
   errorText: {
   textAlign: 'center',
@@ -200,5 +160,4 @@ const styles = {
   fontSize: '18px',
   color: '#e74c3c'
 },
->>>>>>> feature/ui-complete-pre-api
 };
