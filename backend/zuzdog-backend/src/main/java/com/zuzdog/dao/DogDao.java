@@ -81,4 +81,13 @@ public class DogDao {
         Number key = insertActor.executeAndReturnKey(params);
         return key.longValue();
     }
+
+    // update editable dog fields, scoped to userId so a user can only edit their own dog
+    public int updateProfile(long dogId, long userId, String dogName, String breed,
+                              Integer dogAge, String traits, String description) {
+        return jdbcTemplate.update(
+                "UPDATE dogs SET dog_name = ?, breed = ?, dog_age = ?, traits = ?, description = ?, updated_at = NOW() " +
+                        "WHERE dog_id = ? AND user_id = ?",
+                dogName, breed, dogAge, traits, description, dogId, userId);
+    }
 }

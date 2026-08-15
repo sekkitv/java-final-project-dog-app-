@@ -56,7 +56,7 @@ public class MessageDao {
         return key.longValue();
     }
 
-    // Full chat history between two users, oldest first 
+    // Full chat history between two users, oldest first
     public List<ChatMessage> findThread(long userA, long userB) {
         String sql = """
                 SELECT message_id, sender_id, receiver_id, body, sent_at
@@ -68,13 +68,18 @@ public class MessageDao {
         return jdbcTemplate.query(sql, MESSAGE_ROW_MAPPER, userA, userB, userB, userA);
     }
 
+    // marks messages senderId sent to receiverId as read (called when receiverId fetches the thread)
+    public int markThreadAsRead(long receiverId, long senderId) {
+        return jdbcTemplate.update(
+                "UPDATE messages SET read_at = NOW() WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL",
+                receiverId, senderId);
+    }
+
     // One summary row per conversation partner for the conversation list screen.
     // A single query that:
     //   - uses DISTINCT ON (other_user_id) to pick the latest message per partner
     //   - joins users to get the partner's username
-    //   - LEFT JOINs a subquery counting messages received from each partner
-    //     (unreadCount is a proxy: no per-message read flag exists yet, so every
-    //      received message from that partner counts as "unread").
+    //   - LEFT JOINs a subquery counting unread messages (read_at IS NULL) received from each partner
     // Ordered by most recent first.
     public List<ConversationSummary> findConversationSummaries(long userId) {
         String sql = """
@@ -99,7 +104,7 @@ public class MessageDao {
                 LEFT JOIN (
                     SELECT sender_id AS partner_id, COUNT(*) AS unread_count
                     FROM messages
-                    WHERE receiver_id = ?
+                    WHERE receiver_id = ? AND read_at IS NULL
                     GROUP BY sender_id
                 ) uc ON uc.partner_id = conv.other_user_id
                 ORDER BY lm.sent_at DESC

@@ -3,6 +3,7 @@ package com.zuzdog.service;
 import com.zuzdog.dao.DogDao;
 import com.zuzdog.dao.UserDao;
 import com.zuzdog.dto.ProfileResponse;
+import com.zuzdog.dto.UpdateProfileRequest;
 import com.zuzdog.exception.ApiException;
 import com.zuzdog.model.Dog;
 import com.zuzdog.model.User;
@@ -46,5 +47,28 @@ public class ProfileService {
                 dog == null ? null : dog.getTraits(),
                 dog == null ? null : dog.getDescription(),
                 dog == null ? null : dog.getPhotoUrl());
+    }
+
+    // updates description/maxDistance on the user row, and dog fields if a dog exists.
+    // null fields in the request are left unchanged.
+    public ProfileResponse updateProfile(long userId, UpdateProfileRequest request) {
+        User user = userDao.findById(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+
+        String description = request.description() != null ? request.description() : user.getDescription();
+        double maxDistance = request.maxDistance() != null ? request.maxDistance() : user.getMaxDistance();
+        userDao.updateProfile(userId, description, maxDistance);
+
+        Dog dog = dogDao.findPrimaryByUserId(userId).orElse(null);
+        if (dog != null) {
+            String dogName = request.dogName() != null ? request.dogName() : dog.getDogName();
+            String breed = request.breed() != null ? request.breed() : dog.getBreed();
+            Integer dogAge = request.dogAge() != null ? request.dogAge() : dog.getDogAge();
+            String traits = request.traits() != null ? request.traits() : dog.getTraits();
+            String dogDescription = request.dogDescription() != null ? request.dogDescription() : dog.getDescription();
+            dogDao.updateProfile(dog.getDogId(), userId, dogName, breed, dogAge, traits, dogDescription);
+        }
+
+        return getProfile(userId);
     }
 }

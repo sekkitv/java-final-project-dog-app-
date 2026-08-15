@@ -42,14 +42,15 @@ public class MessageService {
     }
 
     // Full chat history between two users, oldest first (chronological).
+    // Fetching the thread also marks whatever userB sent to userA as read.
     public List<ChatMessage> getThread(long userA, long userB) {
+        messageDao.markThreadAsRead(userA, userB);
         return messageDao.findThread(userA, userB);
     }
 
     // Conversation list screen: one summary row per conversation partner.
-    // Each row has the partner's username, the last message + time, and an
-    // unread count (a proxy: the number of messages received from that partner
-    // — there is no per-message read flag in the schema yet).
+    // Each row has the partner's username, the last message + time, and the
+    // real unread count (messages with read_at IS NULL).
     public List<ConversationSummary> getConversationSummaries(long userId) {
         return messageDao.findConversationSummaries(userId);
     }
