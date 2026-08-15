@@ -1,4 +1,5 @@
 export default function EventsList({ hangouts, onSelectHangout }) {
+  // Format ISO/date string to local Israeli date and time (DD/MM/YYYY, HH:mm)
   const formatEventTime = (timeString) => {
     if (!timeString) return "N/A";
     if (!timeString.includes("T") && !timeString.includes("-")) {

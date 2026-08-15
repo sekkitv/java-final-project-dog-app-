@@ -4,6 +4,7 @@ import { api } from "../services/api";
 export default function UserEvents({ myHangouts, setMyHangouts }) {
   const [loading, setLoading] = useState(true);
 
+  // Fetch the current user's registered hangouts on initial mount
   useEffect(() => {
     const loadUserHangouts = async () => {
       try {
@@ -22,6 +23,7 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
     loadUserHangouts();
   }, [setMyHangouts]);
 
+  // Prompt confirmation, cancel registration via API, and update local state
   const handleCancelSignup = async (id, title) => {
     if (
       !window.confirm(
@@ -39,7 +41,7 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
       alert("Failed to cancel signup. Please try again.");
     }
   };
-
+  // Format ISO/date string to local Israeli date and time (DD/MM/YYYY, HH:mm)
   const formatEventTime = (timeString) => {
     if (!timeString) return "N/A";
     if (!timeString.includes("T") && !timeString.includes("-")) {
@@ -84,7 +86,9 @@ export default function UserEvents({ myHangouts, setMyHangouts }) {
                 </div>
               </div>
               <button
-                onClick={() => handleCancelSignup(item.hangoutId, item.description)}
+                onClick={() =>
+                  handleCancelSignup(item.hangoutId, item.description)
+                }
                 style={styles.cancelBtn}
                 title="Cancel signup"
               >

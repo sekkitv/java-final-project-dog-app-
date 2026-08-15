@@ -34,22 +34,28 @@ export default function SettingsPage() {
             setLoading(true);
             setStatusMessage('');
             const data ={ 
-                owner: {
-                    name: ownerName,
-                    age: ownerAge,
-                    bio: ownerBio,
-                    imgUrl: ownerImgUrl
-                },
-                dog: {
-                    name: dogName,
-                    age: dogAge,
-                    breed: dogBreed,
-                    bio: dogBio,
-                    imgUrl: dogImgUrl
-                },
-                settings: {
-                    distance
-                } 
+                description: ownerBio || null,
+                maxDistance: distance ? Number(distance) : null,
+                dogName: dogName || null,
+                breed: dogBreed || null,
+                dogAge: dogAge ? parseInt(dogAge, 10) : null,
+                dogDescription: dogBio || null,
+                // owner: {
+                //     name: ownerName,
+                //     age: ownerAge,
+                //     bio: ownerBio,
+                //     imgUrl: ownerImgUrl
+                // },
+                // dog: {
+                //     name: dogName,
+                //     age: dogAge,
+                //     breed: dogBreed,
+                //     bio: dogBio,
+                //     imgUrl: dogImgUrl
+                // },
+                // settings: {
+                //     distance
+                // } 
             };
             const response = await api.updateProfile(data);
             if(response){

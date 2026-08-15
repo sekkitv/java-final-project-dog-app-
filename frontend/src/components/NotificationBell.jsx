@@ -15,14 +15,13 @@ export default function NotificationBell() {
     ? notifications
     : notifications?.content || notifications?.data || [];
 
+  // Count unread items based on readAt timestamp
   const unreadCount = safeNotifications.filter((item) => {
-    const isRead = item.isRead ?? item.read ?? item.is_read ?? false;
+    const isRead = Boolean(item.readAt);
     return !isRead;
   }).length;
 
-  /**
-   * Formats an ISO date string into a relative time representation
-   */
+  // Convert creation timestamp into human readable relative time
   const getTimeAgo = (dateString) => {
     if (!dateString) return "";
     const diffInMinutes = Math.floor(
@@ -35,9 +34,7 @@ export default function NotificationBell() {
     return `before ${Math.floor(diffInHours / 24)} days`;
   };
 
-  /**
-   * Returns a matching emoji icon based on the notification category
-   */
+  // Match icon to notification category
   const getNotificationIcon = (type) => {
     switch (type) {
       case "MATCH":
@@ -51,15 +48,13 @@ export default function NotificationBell() {
     }
   };
 
-  /**
-   * Handles user click on an individual notification item
-   * Marks item as read, closes the dropdown, and routes to the associated view
-   */
+  // Navigate to relevant tab and close panel
   const handleNotificationClick = async (item) => {
-    if (markAsRead) {
-      markAsRead(item.notificationId);
-    }
     setNotificationBtn(false);
+    // Sync read status when user interacts with an item
+    if (unreadCount > 0 && markAsRead) {
+      markAsRead();
+    }
     if (item.type === "MATCH" || item.type === "MESSAGE") {
       setActiveTab("messages");
     } else if (item.type === "HANGOUT_JOIN") {
@@ -67,12 +62,19 @@ export default function NotificationBell() {
     }
   };
 
+  // Toggle dropdown and sync unread status on close
+  const handleToggleOpen = () => {
+    const nextState = !notificationBtn;
+    setNotificationBtn(nextState);
+    // Mark as read only when closing the drawer
+    if (!nextState && unreadCount > 0 && markAsRead) {
+      markAsRead();
+    }
+  };
+
   return (
     <div>
-      <button
-        style={styles.btnContainer}
-        onClick={() => setNotificationBtn(!notificationBtn)}
-      >
+      <button style={styles.btnContainer} onClick={handleToggleOpen}>
         🔔
         {unreadCount > 0 && (
           <span style={styles.badge}>
@@ -84,12 +86,11 @@ export default function NotificationBell() {
         <div style={styles.notificationContainer}>
           <h2>notifications</h2>
           <div style={styles.divider} />
-          {notifications.length === 0 ? (
+          {safeNotifications.length === 0 ? (
             <div>no notification yet</div>
           ) : (
             safeNotifications.map((item, index) => {
-              const notifId =
-                item.notificationId || index;
+              const notifId = item.notificationId || index;
               const isRead = Boolean(item.readAt);
               const time = item.createdAt;
               const bodyText = item.body;
@@ -147,6 +148,8 @@ const styles = {
     top: "55px",
     right: "0",
     width: "310px",
+    maxHeight: "380px",
+    overflowY: "auto",
     backgroundColor: "#ffffff",
     border: "1.5px solid #ffe0cc",
     borderRadius: "16px",
@@ -203,6 +206,8 @@ const styles = {
   itemTime: {
     fontSize: "11px",
     color: "#a09083",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
   },
   itemBody: {
     fontSize: "13px",

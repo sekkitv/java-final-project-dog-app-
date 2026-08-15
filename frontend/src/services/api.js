@@ -119,6 +119,6 @@ export const api = {
 
   //Notifications
   fetchNotifications: () => apiRequest("/api/notifications"),
-  markNotificationsRead: (notificationId) =>
-    apiRequest(`/api/notifications/${notificationId}`, { method: "POST" }),
+  markNotificationsRead: () =>
+    apiRequest("/api/notifications/read", { method: "POST" }),
 };

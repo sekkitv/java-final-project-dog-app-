@@ -63,12 +63,10 @@ export const AppProvider = ({ children }) => {
   /**
    * Marks a specific notification as read in the backend and updates local state
    */
-  const markAsRead = async (id) => {
+  const markAsRead = async () => {
     try {
-      await api.markNotificationsRead(id);
-      setNotifications((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, isRead: true } : item)),
-      );
+      const response = await api.markNotificationsRead();
+      setNotifications(response.notifications);
     } catch (e) {
       console.error("Failed to mark read:", e);
     }

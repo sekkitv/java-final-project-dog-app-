@@ -6,7 +6,7 @@ import { api } from '../services/api';
 /**
  * MainApp Component
  * Fetches and displays profiles for swiping (LIKE / PASS). Handles swipe actions,
- * advances the feed index, and refreshes conversations on new matches.
+ * advances the feed index, and refreshes conversations on new matches
  */
 export default function SwipesPage({ onMatchCreated }) {
   const [feed, setFeed] = useState([]);
@@ -17,7 +17,7 @@ export default function SwipesPage({ onMatchCreated }) {
   
   
   /**
-   * Fetches initial feed data on component mount.
+   * Fetches initial feed data on component mount
    */
   useEffect(() => {
     async function loadFeed() {
@@ -37,8 +37,8 @@ export default function SwipesPage({ onMatchCreated }) {
   }, []);
 
   /**
-   * Handles user swipe action (UP for LIKE, DOWN for PASS).
-   * Advances feed index immediately for responsive UI and submits choice to API.
+   * Handles user swipe action (UP for LIKE, DOWN for PASS)
+   * Advances feed index immediately for responsive UI and submits choice to API
    */
   const handleSwipe = async (direction) => {
     const currentProfile = feed[currentIndex];
@@ -85,7 +85,6 @@ export default function SwipesPage({ onMatchCreated }) {
 
   return (
     <div style={styles.mainContainer}>
-      
       <ProfileCard profile={currentProfile} />
 
      

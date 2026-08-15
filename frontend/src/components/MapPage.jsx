@@ -199,6 +199,7 @@ export default function MapPage() {
     setIsSelectingLocation(true);
   };
 
+  // Format ISO/date string to local Israeli date and time (DD/MM/YYYY, HH:mm)
   const formatEventTime = (timeString) => {
     if (!timeString) return "N/A";
     if (!timeString.includes("T") && !timeString.includes("-")) {
@@ -216,7 +217,7 @@ export default function MapPage() {
     });
   };
 
-  //Cancels the authenticated user's registration for a specific hangout event
+  // Cancel signup for a hangout and update local state
   const handleCancelSignup = async (hangoutId) => {
     try {
       await api.cancelHangoutSignup(hangoutId);
@@ -233,14 +234,10 @@ export default function MapPage() {
           return item;
         }),
       );
-      // Update active modal view if the currently selected hangout matches
-      if (selectedHangout && selectedHangout.hangoutId === hangoutId) {
-        setSelectedHangout((prev) => ({
-          ...prev,
-          signedUp: false,
-          participantCount: Math.max(0, (prev.participantCount || 1) - 1),
-        }));
-      }
+      // Remove from user's registered list
+      setMyHangouts((prevMy) =>
+        prevMy.filter((item) => item.hangoutId !== hangoutId),
+      );
     } catch (error) {
       console.error("Failed to cancel signup:", error);
       alert("Failed to cancel signup. Please try again.");
@@ -384,23 +381,29 @@ export default function MapPage() {
                                   : "Always Open 🐾"}
                               </p>
                               {item.activityType === "MEETUP" &&
-                                (item.signedUp ? (
-                                  <button
-                                    onClick={() =>
-                                      handleCancelSignup(item.hangoutId)
-                                    }
-                                    style={styles.cancelBtn}
-                                  >
-                                    Cancel Signup ❌
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => setSelectedHangout(item)}
-                                    style={styles.detailsBtn}
-                                  >
-                                    View Details & Join 🦴
-                                  </button>
-                                ))}
+                                (() => {
+                                  const isSignedUp = myHangouts?.some(
+                                    (h) => h.hangoutId === item.hangoutId,
+                                  );
+
+                                  return isSignedUp ? (
+                                    <button
+                                      onClick={() =>
+                                        handleCancelSignup(item.hangoutId)
+                                      }
+                                      style={styles.popupCancelSignupBtn}
+                                    >
+                                      Cancel Signup ❌
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => setSelectedHangout(item)}
+                                      style={styles.detailsBtn}
+                                    >
+                                      View Details & Join 🦴
+                                    </button>
+                                  );
+                                })()}
                             </div>
                           </Popup>
                         </Marker>
@@ -538,7 +541,8 @@ export default function MapPage() {
                         await api.signupHangout(selectedHangout.hangoutId);
                         setMyHangouts((prev) => {
                           const exists = prev.some(
-                            (item) => item.hangoutId === selectedHangout.hangoutId,
+                            (item) =>
+                              item.hangoutId === selectedHangout.hangoutId,
                           );
                           return exists ? prev : [...prev, selectedHangout];
                         });
@@ -930,5 +934,15 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
     whiteSpace: "nowrap",
+  },
+  popupCancelSignupBtn: {
+    width: "100%",
+    padding: "8px",
+    background: "#fee2e2",
+    color: "#dc2626",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "600",
+    cursor: "pointer",
   },
 };
