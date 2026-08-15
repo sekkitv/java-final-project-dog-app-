@@ -1,0 +1,12 @@
+package com.zuzdog.dto;
+
+// PUT /api/profile body, null field means "leave unchanged"
+public record UpdateProfileRequest(
+        String description,
+        Double maxDistance,
+        String dogName,
+        String breed,
+        Integer dogAge,
+        String traits,
+        String dogDescription) {
+}

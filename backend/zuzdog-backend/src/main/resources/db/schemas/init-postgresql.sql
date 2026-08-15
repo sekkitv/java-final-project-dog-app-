@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS messages (
     receiver_id BIGINT          NOT NULL REFERENCES users (user_id) ON DELETE CASCADE,
     body        TEXT            NOT NULL,
     sent_at     TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    read_at     TIMESTAMPTZ, -- NULL = unread, set when the receiver fetches the thread
     CHECK (sender_id <> receiver_id),
     CHECK (char_length(trim(body)) > 0) -- we do it to reject empty messages and pure whitespaces.
 );
