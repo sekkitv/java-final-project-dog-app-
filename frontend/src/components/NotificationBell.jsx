@@ -57,7 +57,7 @@ export default function NotificationBell() {
    */
   const handleNotificationClick = async (item) => {
     if (markAsRead) {
-      markAsRead(item.id);
+      markAsRead(item.notificationId);
     }
     setNotificationBtn(false);
     if (item.type === "MATCH" || item.type === "MESSAGE") {
@@ -89,10 +89,10 @@ export default function NotificationBell() {
           ) : (
             safeNotifications.map((item, index) => {
               const notifId =
-                item.notificationId || item.notification_id || item.id || index;
-              const isRead = item.isRead ?? item.read ?? item.is_read ?? false;
-              const time = item.createdAt || item.created_at;
-              const bodyText = item.body || item.message || item.content;
+                item.notificationId || index;
+              const isRead = Boolean(item.readAt);
+              const time = item.createdAt;
+              const bodyText = item.body;
 
               return (
                 <div

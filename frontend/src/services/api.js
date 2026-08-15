@@ -69,15 +69,11 @@ export const api = {
   //Feed & Swipes
   fetchFeed: (limit) =>
     apiRequest(`/api/feed${limit ? `?limit=${limit}` : ""}`),
-  // postSwipe: (targetId, action) => apiRequest('/api/swipes', { method: 'POST', body: JSON.stringify({ targetId, action }) }),
-  //MOCK
-  postSwipe: async (targetId, action) => {
-    console.log(`[Mock API] Swiped ${action} on targetId: ${targetId}`);
-    return {
-      success: true,
-      isMatch: action === "LIKE",
-    };
-  },
+  postSwipe: (targetId, action) =>
+    apiRequest("/api/swipe", {
+      method: "POST",
+      body: JSON.stringify({ targetId, action }),
+    }),
   fetchMatches: () => apiRequest("/api/matches"),
 
   //Profile
@@ -144,6 +140,6 @@ export const api = {
 
   //Notifications
   fetchNotifications: () => apiRequest("/api/notifications"),
-  markNotificationsRead: (id) =>
-    apiRequest(`/api/notifications/${id}`, { method: "POST" }),
+  markNotificationsRead: (notificationId) =>
+    apiRequest(`/api/notifications/${notificationId}`, { method: "POST" }),
 };

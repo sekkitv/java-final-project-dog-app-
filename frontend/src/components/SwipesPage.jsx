@@ -44,11 +44,10 @@ export default function SwipesPage({ onMatchCreated }) {
     const currentProfile = feed[currentIndex];
 
     if (!currentProfile) return;
-    const action = direction === 'UP' ? 'LIKE' : 'PASS';
 
     setCurrentIndex((prev) => prev + 1);
     try {
-      const response = await api.postSwipe(currentProfile.userId, action);
+      const response = await api.postSwipe(currentProfile.userId, direction);
 
       // On match action, refresh conversation list for potential matches
       if (response?.isMatch) {
@@ -60,7 +59,7 @@ export default function SwipesPage({ onMatchCreated }) {
         }
       }
     } catch (err) {
-      console.error(`Error processing ${action} swipe:`, err);
+      console.error(`Error processing ${direction} swipe:`, err);
     }
   };
   
