@@ -6,6 +6,7 @@ public class FeedCandidate {
 
     private long userId;
     private String username;
+    private Integer userAge;
     private String description;
     private String photoUrl;
     private double distanceKm;
@@ -14,6 +15,7 @@ public class FeedCandidate {
     private String dogName;
     private String breed;
     private Integer dogAge;
+    private String dogDescription;
     private String dogPhotoUrl;
 
     public long getUserId() { return userId; }
@@ -21,6 +23,9 @@ public class FeedCandidate {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+    public Integer getUserAge() { return userAge; }
+    public void setUserAge(Integer userAge) { this.userAge = userAge; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -42,6 +47,9 @@ public class FeedCandidate {
 
     public Integer getDogAge() { return dogAge; }
     public void setDogAge(Integer dogAge) { this.dogAge = dogAge; }
+
+    public String getDogDescription() { return dogDescription; }
+    public void setDogDescription(String dogDescription) { this.dogDescription = dogDescription; }
 
     public String getDogPhotoUrl() { return dogPhotoUrl; }
     public void setDogPhotoUrl(String dogPhotoUrl) { this.dogPhotoUrl = dogPhotoUrl; }

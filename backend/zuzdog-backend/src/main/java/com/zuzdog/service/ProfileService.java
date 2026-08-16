@@ -9,16 +9,19 @@ import com.zuzdog.model.Dog;
 import com.zuzdog.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProfileService {
 
     private final UserDao userDao;
     private final DogDao dogDao;
+    private final FileStorageService fileStorageService;
 
-    public ProfileService(UserDao userDao, DogDao dogDao) {
+    public ProfileService(UserDao userDao, DogDao dogDao, FileStorageService fileStorageService) {
         this.userDao = userDao;
         this.dogDao = dogDao;
+        this.fileStorageService = fileStorageService;
     }
 
     // serach for the user profile by userId , if not found throw 404 error
@@ -69,6 +72,22 @@ public class ProfileService {
             dogDao.updateProfile(dog.getDogId(), userId, dogName, breed, dogAge, traits, dogDescription);
         }
 
+        return getProfile(userId);
+    }
+
+    // store the uploaded file and point the owner's photo_url at it
+    public ProfileResponse uploadOwnerPhoto(long userId, MultipartFile file) {
+        String url = fileStorageService.store(file, "owner");
+        userDao.updatePhotoUrl(userId, url);
+        return getProfile(userId);
+    }
+
+    // store the uploaded file and point the primary dog's photo_url at it, requires a dog to exist
+    public ProfileResponse uploadDogPhoto(long userId, MultipartFile file) {
+        Dog dog = dogDao.findPrimaryByUserId(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "Create a dog profile first"));
+        String url = fileStorageService.store(file, "dog");
+        dogDao.updatePhotoUrl(dog.getDogId(), userId, url);
         return getProfile(userId);
     }
 }

@@ -21,21 +21,21 @@ public class FeedDao {
             """.formatted(EARTH_RADIUS_KM);
 
 
-    //sql query that look for ids that we wont and then join them with there dogs 
+    //sql query that look for ids that we wont and then join them with there dogs
     private final String feedSql = """
-            SELECT u.user_id, u.username, u.description, u.photo_url, distance_km,
-                   d.dog_id, d.dog_name, d.breed, d.dog_age, d.photo_url AS dog_photo_url
+            SELECT u.user_id, u.username, u.user_age, u.description, u.photo_url, distance_km,
+                   d.dog_id, d.dog_name, d.breed, d.dog_age, d.description AS dog_description, d.photo_url AS dog_photo_url
             FROM (
-                SELECT user_id, username, description, photo_url, %s AS distance_km
+                SELECT user_id, username, user_age, description, photo_url, %s AS distance_km
                 FROM users u
-                WHERE user_id <> ? AND lat IS NOT NULL AND lng IS NOT NULL  
+                WHERE user_id <> ? AND lat IS NOT NULL AND lng IS NOT NULL
                   AND NOT EXISTS (
                       SELECT 1 FROM swipes s
                       WHERE s.sender_id = ? AND s.target_id = u.user_id
                   )
             ) u
             LEFT JOIN LATERAL (
-                SELECT dog_id, dog_name, breed, dog_age, photo_url
+                SELECT dog_id, dog_name, breed, dog_age, description, photo_url
                 FROM dogs d2 WHERE d2.user_id = u.user_id ORDER BY dog_id LIMIT 1
             ) d ON TRUE
             WHERE distance_km <= ?
@@ -50,6 +50,8 @@ public class FeedDao {
         FeedCandidate c = new FeedCandidate();
         c.setUserId(rs.getLong("user_id"));
         c.setUsername(rs.getString("username"));
+        int userAge = rs.getInt("user_age");
+        c.setUserAge(rs.wasNull() ? null : userAge);
         c.setDescription(rs.getString("description"));
         c.setPhotoUrl(rs.getString("photo_url"));
         c.setDistanceKm(rs.getDouble("distance_km"));
@@ -61,6 +63,7 @@ public class FeedDao {
             c.setBreed(rs.getString("breed"));
             int dogAge = rs.getInt("dog_age");
             c.setDogAge(rs.wasNull() ? null : dogAge);
+            c.setDogDescription(rs.getString("dog_description"));
             c.setDogPhotoUrl(rs.getString("dog_photo_url"));
         }
         return c;

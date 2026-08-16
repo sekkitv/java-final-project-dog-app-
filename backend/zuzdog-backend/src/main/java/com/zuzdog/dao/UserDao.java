@@ -115,4 +115,11 @@ public class UserDao {
                 "UPDATE users SET description = ?, max_distance = ?, updated_at = NOW() WHERE user_id = ?",
                 description, maxDistance, userId);
     }
+
+    // update the owner's photo url
+    public int updatePhotoUrl(long userId, String photoUrl) {
+        return jdbcTemplate.update(
+                "UPDATE users SET photo_url = ?, updated_at = NOW() WHERE user_id = ?",
+                photoUrl, userId);
+    }
 }

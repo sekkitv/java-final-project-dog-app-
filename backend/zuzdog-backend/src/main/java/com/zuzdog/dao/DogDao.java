@@ -90,4 +90,11 @@ public class DogDao {
                         "WHERE dog_id = ? AND user_id = ?",
                 dogName, breed, dogAge, traits, description, dogId, userId);
     }
+
+    // update the dog's photo url, scoped to userId so a user can only edit their own dog
+    public int updatePhotoUrl(long dogId, long userId, String photoUrl) {
+        return jdbcTemplate.update(
+                "UPDATE dogs SET photo_url = ?, updated_at = NOW() WHERE dog_id = ? AND user_id = ?",
+                photoUrl, dogId, userId);
+    }
 }
