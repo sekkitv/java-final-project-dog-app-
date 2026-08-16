@@ -539,9 +539,6 @@ export default function MapPage() {
                     onClick={async () => {
                       try {
                         await api.signupHangout(selectedHangout.hangoutId);
-                        {
-                          console.log(selectedHangout);
-                        }
                         const updatedCount =
                           (selectedHangout.participantCount || 0) + 1;
                         const updatedHangout = {
