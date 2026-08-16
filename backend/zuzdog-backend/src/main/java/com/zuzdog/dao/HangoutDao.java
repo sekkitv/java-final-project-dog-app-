@@ -79,7 +79,7 @@ public class HangoutDao {
         params.put("organizer_name", organizerName);
         params.put("latitude", latitude);
         params.put("longitude", longitude);
-        params.put("event_time", eventTime);
+        params.put("event_time", eventTime != null ? java.sql.Timestamp.from(eventTime) : null);
         params.put("activity_type", activityType.name());
         Number key = insertHangout.executeAndReturnKey(params); //executeandreutnrkey is a simplejdbcinsert method, it generated a primary key 
         return key.longValue();

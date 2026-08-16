@@ -539,12 +539,29 @@ export default function MapPage() {
                     onClick={async () => {
                       try {
                         await api.signupHangout(selectedHangout.hangoutId);
+                        {
+                          console.log(selectedHangout);
+                        }
+                        const updatedCount =
+                          (selectedHangout.participantCount || 0) + 1;
+                        const updatedHangout = {
+                          ...selectedHangout,
+                          signedUp: true,
+                          participantCount: updatedCount,
+                        };
+                        setHangouts((prev) =>
+                          prev.map((item) =>
+                            item.hangoutId === selectedHangout.hangoutId
+                              ? updatedHangout
+                              : item,
+                          ),
+                        );
                         setMyHangouts((prev) => {
                           const exists = prev.some(
                             (item) =>
                               item.hangoutId === selectedHangout.hangoutId,
                           );
-                          return exists ? prev : [...prev, selectedHangout];
+                          return exists ? prev : [...prev, updatedHangout];
                         });
                         alert(
                           `Awesome! You are signed up for ${selectedHangout.title} 🎉`,

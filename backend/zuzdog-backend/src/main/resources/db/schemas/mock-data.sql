@@ -9,18 +9,18 @@
 
 -- Users
 
-INSERT INTO users (username, password_hash, email, user_age, description, max_distance, lat, lng)
+INSERT INTO users (username, password_hash,salt, email, user_age, description, max_distance, lat, lng)
 VALUES
-    ('maya_tlv',     'PLACEHOLDER', 'maya@example.com',     28, 'Coffee & corgis. Love beach weekends.',   30, 32.0809, 34.7806),
-    ('yoni_dad',     'PLACEHOLDER', 'yoni@example.com',     32, 'Engineer, dog dad, fetch enthusiast.',    25, 32.0871, 34.7742),
-    ('noa_paws',     'PLACEHOLDER', 'noa@example.com',      26, 'Rescue advocate. Slow walks, lots of treats.', 20, 32.0923, 34.7688),
-    ('amir_gold',    'PLACEHOLDER', 'amir@example.com',     35, 'Golden retriever dad. Fluent in ball-throwing.', 35, 32.0755, 34.7851),
-    ('lily_shi',     'PLACEHOLDER', 'lily@example.com',     29, 'Shiba mom. Independent dog, social human.', 15, 32.1012, 34.7910),
-    ('omer_husk',    'PLACEHOLDER', 'omer@example.com',     31, 'Husky owner. We run at sunrise.',          40, 32.0688, 34.7720),
-    ('dana_jer',     'PLACEHOLDER', 'dana@example.com',     27, 'Jerusalem dog walker, loves the old city.', 25, 31.7857, 35.2151),
-    ('ariel_hfa',    'PLACEHOLDER', 'ariel@example.com',    33, 'Haifa hill hiker, big-dog household.',     30, 32.7940, 34.9896),
-    ('ron_bsv',      'PLACEHOLDER', 'ron@example.com',      30, 'Beer-Sheva newbie, mixed-breed fan.',      30, 31.2520, 34.7915),
-    ('sara_eilat',   'PLACEHOLDER', 'sara@example.com',     34, 'Desert dog mom, weekend hikes in the south.', 50, 29.5577, 34.9519)
+    ('maya_tlv',     'PLACEHOLDER','salt1', 'maya@example.com',     28, 'Coffee & corgis. Love beach weekends.',   30, 32.0809, 34.7806),
+    ('yoni_dad',     'PLACEHOLDER', 'salt2','yoni@example.com',     32, 'Engineer, dog dad, fetch enthusiast.',    25, 32.0871, 34.7742),
+    ('noa_paws',     'PLACEHOLDER', 'salt3','noa@example.com',      26, 'Rescue advocate. Slow walks, lots of treats.', 20, 32.0923, 34.7688),
+    ('amir_gold',    'PLACEHOLDER', 'salt4','amir@example.com',     35, 'Golden retriever dad. Fluent in ball-throwing.', 35, 32.0755, 34.7851),
+    ('lily_shi',     'PLACEHOLDER', 'salt5','lily@example.com',     29, 'Shiba mom. Independent dog, social human.', 15, 32.1012, 34.7910),
+    ('omer_husk',    'PLACEHOLDER', 'salt6','omer@example.com',     31, 'Husky owner. We run at sunrise.',          40, 32.0688, 34.7720),
+    ('dana_jer',     'PLACEHOLDER', 'salt7','dana@example.com',     27, 'Jerusalem dog walker, loves the old city.', 25, 31.7857, 35.2151),
+    ('ariel_hfa',    'PLACEHOLDER', 'salt8','ariel@example.com',    33, 'Haifa hill hiker, big-dog household.',     30, 32.7940, 34.9896),
+    ('ron_bsv',      'PLACEHOLDER', 'salt9','ron@example.com',      30, 'Beer-Sheva newbie, mixed-breed fan.',      30, 31.2520, 34.7915),
+    ('sara_eilat',   'PLACEHOLDER', 'salt10','sara@example.com',     34, 'Desert dog mom, weekend hikes in the south.', 50, 29.5577, 34.9519)
 ON CONFLICT (username) DO NOTHING;
 
 -- Dogs (one per user, matched by username)
