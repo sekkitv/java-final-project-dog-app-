@@ -19,8 +19,8 @@ export default function ProfileSidebar() {
                 const data = await api.fetchProfile(); 
                 if (data) {
                     setName(data.name || data.username);
-                    setOwnerImgUrl(data.ownerUrl);
-                    setDogImgUrl(data.dogUrl);
+                    setOwnerImgUrl(data.photoUrl);
+                    setDogImgUrl(data.dogPhotoUrl);
                     setDogName(data.dogName);
                 }
             } catch (err) {

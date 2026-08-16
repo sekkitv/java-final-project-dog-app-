@@ -30,6 +30,13 @@ async function apiRequest(endpoint, options = {}) {
       ...options,
       headers,
     });
+    
+    // Handle expired/invalid session for protected routes (logout & redirect)
+    if (response.status === 401 && !endpoint.includes("/auth/")) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+      throw new Error("Session expired. Please log in again.");
+    }
 
     // Safely parse JSON only if the server explicitly returned a JSON Content-Type
     const isJson = response.headers
@@ -82,7 +89,7 @@ export const api = {
     apiRequest("/api/profile", { method: "PUT", body: JSON.stringify(data) }),
   uploadOwnerPhoto: (file) => {
     const formData = new FormData();
-    formData.append("photo", file);
+    formData.append("file", file);
     return apiRequest("/api/profile/photos/owner", {
       method: "POST",
       body: formData,
@@ -90,7 +97,7 @@ export const api = {
   },
   uploadDogPhoto: (file) => {
     const formData = new FormData();
-    formData.append("photo", file);
+    formData.append("file", file);
     return apiRequest("/api/profile/photos/dog", {
       method: "POST",
       body: formData,
