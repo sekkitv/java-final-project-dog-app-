@@ -113,8 +113,16 @@ public class HangoutDao {
             """;
 
 
-    // returns all hangouts the user is signed for 
+    // returns all hangouts the user is signed for
     public List<Hangout> findSignedUpByUser(long userId) {
         return jdbcTemplate.query(SELECT_SIGNED_UP, HANGOUT_ROW_MAPPER, userId);
+    }
+
+    // deletes every hangout whose event_time has passed. event_time IS NULL means an
+    // "always-open spot" (water bowl, poop bag station) and is never deleted here.
+    // hangout_participants rows for these hangouts are removed automatically (ON DELETE CASCADE).
+    public int deleteExpired() {
+        return jdbcTemplate.update(
+                "DELETE FROM hangouts WHERE event_time IS NOT NULL AND event_time < NOW()");
     }
 }

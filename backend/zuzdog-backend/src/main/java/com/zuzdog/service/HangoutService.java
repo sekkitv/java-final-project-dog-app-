@@ -10,6 +10,7 @@ import com.zuzdog.model.Hangout;
 import com.zuzdog.model.HangoutActivityType;
 import com.zuzdog.model.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,13 @@ public class HangoutService {
         this.participantDao = participantDao;
         this.userDao = userDao;
         this.notificationService = notificationService;
+    }
+
+    // sweeps expired hangouts off the map every hour. same pattern as
+    // SessionService.purgeExpired() (needs @EnableScheduling on ZuzdogApplication).
+    @Scheduled(fixedDelay = 3_600_000L)
+    public void purgeExpired() {
+        hangoutDao.deleteExpired();
     }
 
     // GET /api/hangouts  every hangout so we could put on map
@@ -66,7 +74,10 @@ public class HangoutService {
                 request.eventTime(),
                 activityType);
 
-        // re-fetch to return the full row 
+        // the organizer is automatically signed up for their own hangout
+        participantDao.add(hangoutId, organizerId);
+
+        // re-fetch to return the full row
         Optional<Hangout> created = hangoutDao.findById(hangoutId, organizerId);
         if (created.isEmpty()) {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to load created hangout");
