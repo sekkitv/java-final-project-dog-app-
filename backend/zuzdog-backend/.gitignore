@@ -32,3 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 .vscode
+
+# Uploaded files & user media
+uploads/
+**/uploads/
