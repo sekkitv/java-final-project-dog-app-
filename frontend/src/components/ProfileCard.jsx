@@ -68,7 +68,7 @@ export default function ProfileCard({ profile }) {
               alt={profile.username}
               style={styles.image}
             />
-            <h2>{profile.username}</h2>
+            <h2>{profile.username}, {profile.userAge}</h2>
             <p style={styles.subtitle}>📍 {formattedDistance} km away</p>
             <p style={styles.bio}>{profile.description}</p>
           </div>

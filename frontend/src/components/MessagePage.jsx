@@ -30,6 +30,7 @@ export default function MessagesPage() {
         setLoading(true);
         const activeConvs = await api.fetchConversations();
         const matchesData = await api.fetchMatches();
+        {console.log(activeConvs)}
         // Normalize active conversation records from backend
         const normalizedConvs = (activeConvs || []).map((c) => ({
           id: c.otherUserId,
