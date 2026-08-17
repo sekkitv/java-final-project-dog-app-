@@ -58,9 +58,10 @@ public class ProfileService {
         User user = userDao.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
+        Integer userAge = request.userAge() != null ? request.userAge() : user.getUserAge();
         String description = request.description() != null ? request.description() : user.getDescription();
         double maxDistance = request.maxDistance() != null ? request.maxDistance() : user.getMaxDistance();
-        userDao.updateProfile(userId, description, maxDistance);
+        userDao.updateProfile(userId, userAge, description, maxDistance);
 
         Dog dog = dogDao.findPrimaryByUserId(userId).orElse(null);
         if (dog != null) {

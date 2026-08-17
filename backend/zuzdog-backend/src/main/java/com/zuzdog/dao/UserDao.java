@@ -109,11 +109,11 @@ public class UserDao {
                 lat, lng, userId);
     }
 
-    // update description + max distance for a user
-    public int updateProfile(long userId, String description, double maxDistance) {
+    // update age + description + max distance for a user
+    public int updateProfile(long userId, Integer userAge, String description, double maxDistance) {
         return jdbcTemplate.update(
-                "UPDATE users SET description = ?, max_distance = ?, updated_at = NOW() WHERE user_id = ?",
-                description, maxDistance, userId);
+                "UPDATE users SET user_age = ?, description = ?, max_distance = ?, updated_at = NOW() WHERE user_id = ?",
+                userAge, description, maxDistance, userId);
     }
 
     // update the owner's photo url
