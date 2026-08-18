@@ -2,10 +2,12 @@ package com.zuzdog.controller;
 
 import com.zuzdog.dto.ProfileResponse;
 import com.zuzdog.dto.UpdateProfileRequest;
+import com.zuzdog.dto.UserProfilePictureResponse;
 import com.zuzdog.security.AuthenticationFilter;
 import com.zuzdog.service.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +30,12 @@ public class ProfileController {
     public ProfileResponse getProfile(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);
         return profileService.getProfile(userId);
+    }
+
+    //returns only the OTHER user's id + photo url 
+    @GetMapping("/api/profile/{userId}/photo")
+    public UserProfilePictureResponse getUserProfilePicture(@PathVariable long userId) {
+        return profileService.getUserProfilePicture(userId);
     }
 
     @PutMapping("/api/profile")
