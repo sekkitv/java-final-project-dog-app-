@@ -62,7 +62,7 @@ class AuthinectionTest {
         dogDao = new FakeDogDao();
 
         AuthService authService = new AuthService(userDao, dogDao, passwordHasher, sessionService);
-        ProfileService profileService = new ProfileService(userDao, dogDao);
+        ProfileService profileService = new ProfileService(userDao, dogDao, null);
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new AuthController(authService), new ProfileController(profileService))

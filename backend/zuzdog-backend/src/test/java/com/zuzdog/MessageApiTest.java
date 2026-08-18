@@ -85,7 +85,7 @@ class MessageApiTest {
         matchDao.addMatch(ALICE_ID, BOB_ID);
 
         MessageService messageService = new MessageService(messageDao, matchDao,
-                new NotificationService(new FakeNotificationDao()));
+            new NotificationService(new FakeNotificationDao()));
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new MessageController(messageService))
@@ -519,15 +519,17 @@ class MessageApiTest {
             return summaries;
         }
 
-        @Override
-        public List<ChatMessage> findConversations(long userId) {
-            // kept for completeness; the controller no longer calls this path,
-            // but the service still exposes getConversations -> findConversations.
-            return messages.stream()
-                    .filter(m -> m.getSenderId() == userId || m.getReceiverId() == userId)
-                    .toList();
-        }
     }
+
+    //     @Override
+    //     public List<ChatMessage> findConversations(long userId) {
+    //         // kept for completeness; the controller no longer calls this path,
+    //         // but the service still exposes getConversations -> findConversations.
+    //         return messages.stream()
+    //                 .filter(m -> m.getSenderId() == userId || m.getReceiverId() == userId)
+    //                 .toList();
+    //     }
+    // }
 
     // No-op NotificationDao. MessageService now fires a MESSAGE notification on
     // every send (DoD step 2.6), so the service-under-test needs a NotificationService

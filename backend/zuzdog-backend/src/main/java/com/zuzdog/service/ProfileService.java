@@ -4,6 +4,7 @@ import com.zuzdog.dao.DogDao;
 import com.zuzdog.dao.UserDao;
 import com.zuzdog.dto.ProfileResponse;
 import com.zuzdog.dto.UpdateProfileRequest;
+import com.zuzdog.dto.UserProfilePictureResponse;
 import com.zuzdog.exception.ApiException;
 import com.zuzdog.model.Dog;
 import com.zuzdog.model.User;
@@ -50,6 +51,14 @@ public class ProfileService {
                 dog == null ? null : dog.getTraits(),
                 dog == null ? null : dog.getDescription(),
                 dog == null ? null : dog.getPhotoUrl());
+    }
+
+    // Return only the other user's id + photo url  used by the frontend to
+    // if the user doesn`t exists throw 404
+    public UserProfilePictureResponse getUserProfilePicture(long userId) {
+        User user = userDao.findById(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+        return new UserProfilePictureResponse(user.getUserId(), user.getPhotoUrl());
     }
 
     // updates description/maxDistance on the user row, and dog fields if a dog exists.
