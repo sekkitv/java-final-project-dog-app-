@@ -120,15 +120,15 @@ const styles ={
     fontWeight: '600'
   },
   ownerAvatar: {
-    width: '75px',
-    height: '75px',
+    width: '100px',
+    height: '100px',
     borderRadius: '50%',
     border: '3px solid #ffb88a',
     objectFit: 'cover'
   },
   dogAvatar: {
-    width: '75px',
-    height: '75px',
+    width: '100px',
+    height: '100px',
     borderRadius: '50%',
     border: '3px solid #7dd3a8',
     objectFit: 'cover'
