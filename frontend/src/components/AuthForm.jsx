@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApp } from "../context/useApp";
 import { api } from "../services/api";
 
+
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [password, setPassword] = useState("");
@@ -10,6 +11,10 @@ export default function AuthForm() {
   const [error, setError] = useState("");
   const { login } = useApp();
 
+  const DEFAULT_LOCATION = {
+    lat: 32.0853,
+    lng: 34.7818,
+  };
   /**
    * Fetches the user's current GPS coordinates.
    * Resolves to null coordinates if permission is denied or unavailable,
@@ -18,7 +23,7 @@ export default function AuthForm() {
   const getBrowserLocation = () => {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
-        resolve({ lat: null, lng: null });
+        resolve(DEFAULT_LOCATION);
         return;
       }
       navigator.geolocation.getCurrentPosition(
@@ -29,8 +34,8 @@ export default function AuthForm() {
           });
         },
         () => {
-          // Fallback to null if user blocks location access
-          resolve({ lat: null, lng: null });
+          console.warn("Location permission denied, using default location (Tel Aviv)");
+          resolve(DEFAULT_LOCATION);
         },
       );
     });

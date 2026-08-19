@@ -103,6 +103,7 @@ export const api = {
       body: formData,
     });
   },
+  fetchPhoto: (userId) => apiRequest(`/api/profile/${userId}/photo`),
 
   //Messages
   fetchConversations: () => apiRequest("/api/messages/conversations"),

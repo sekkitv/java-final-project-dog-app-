@@ -30,32 +30,54 @@ export default function MessagesPage() {
         setLoading(true);
         const activeConvs = await api.fetchConversations();
         const matchesData = await api.fetchMatches();
-        {console.log(activeConvs)}
         // Normalize active conversation records from backend
-        const normalizedConvs = (activeConvs || []).map((c) => ({
-          id: c.otherUserId,
-          name: c.otherUsername || "User",
-          avatarUrl: c.photoUrl || DEFAULT_AVATAR,
-          lastMessage: c.lastMessage || "",
-          unread: (c.unreadCount || 0) > 0,
-          unreadCount: c.unreadCount || 0,
-        }));
+        const normalizedConvs = await Promise.all(
+          (activeConvs || []).map(async (c) => {
+            let photoUrl = DEFAULT_AVATAR;
+            try {
+              const photoRes = await api.fetchPhoto(c.otherUserId);
+              photoUrl = photoRes?.photoUrl || DEFAULT_AVATAR;
+            } catch (e) {
+              console.warn(
+                `Failed to fetch photo for user ${c.otherUserId}`,
+                e,
+              );
+            }
+            return {
+              id: c.otherUserId,
+              name: c.otherUsername || "User",
+              avatarUrl: photoUrl,
+              lastMessage: c.lastMessage || "",
+              unread: (c.unreadCount || 0) > 0,
+              unreadCount: c.unreadCount || 0,
+            };
+          }),
+        );
         // Convert matches without active chats into conversation entries
-        const matchConvs = matchesData
-          .filter(
-            (m) =>
-              !activeConvs.some(
-                (c) => (c.otherUserId || c.userId) === m.userId,
-              ),
-          )
-          .map((m) => ({
-            id: m.userId,
-            name: m.username,
-            avatarUrl: m.photoUrl || DEFAULT_AVATAR,
-            lastMessage: "🎉 New match! Say hi...",
-            unread: false,
-            unreadCount: 0,
-          }));
+        const unstartedMatches = (matchesData || []).filter(
+          (m) =>
+            !activeConvs.some((c) => (c.otherUserId || c.userId) === m.userId),
+        );
+        // Convert matches without active chats into conversation entries
+        const matchConvs = await Promise.all(
+          unstartedMatches.map(async (m) => {
+            let photoUrl = DEFAULT_AVATAR;
+            try {
+              const photoRes = await api.fetchPhoto(m.userId);
+              photoUrl = photoRes?.photoUrl || DEFAULT_AVATAR;
+            } catch (e) {
+              console.warn(`Failed to fetch photo for match ${m.userId}`, e);
+            }
+            return {
+              id: m.userId,
+              name: m.username,
+              avatarUrl: photoUrl || DEFAULT_AVATAR,
+              lastMessage: "🎉 New match! Say hi...",
+              unread: false,
+              unreadCount: 0,
+            };
+          }),
+        );
         setConversations([...matchConvs, ...normalizedConvs]);
       } catch (err) {
         console.error("Error loading conversations:", err);
