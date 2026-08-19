@@ -23,6 +23,7 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
 ENV BACKEND_URL=http://127.0.0.1:8080
+ENV PORT=80
 
 EXPOSE 80
 
