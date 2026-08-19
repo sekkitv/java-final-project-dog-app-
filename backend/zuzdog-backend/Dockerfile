@@ -23,7 +23,6 @@ WORKDIR /app
 
 # Persistent upload volume mount point (Railway volume mounts here)
 RUN mkdir -p /app/uploads && chown -R 1000:1000 /app
-VOLUME ["/app/uploads"]
 
 COPY --from=build /extracted/dependencies/         ./
 COPY --from=build /extracted/spring-boot-loader/   ./
