@@ -73,7 +73,7 @@ export default function AuthForm() {
   return (
     <div style={styles.pageWrapper}>
       <div style={styles.container}>
-        <h1 style={styles.title}>PawMatch</h1>
+        <h1 style={styles.title}>ZuzDog</h1>
         <p style={styles.subtitle}>
           {isLogin
             ? "Sign in to meet dogs and owners nearby."
