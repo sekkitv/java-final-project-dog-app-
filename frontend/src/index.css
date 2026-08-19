@@ -17,7 +17,9 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  /* App is light-themed; force light native form controls so input text
+     stays dark and visible regardless of the OS dark-mode setting. */
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
