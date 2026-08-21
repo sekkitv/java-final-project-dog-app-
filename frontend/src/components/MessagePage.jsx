@@ -132,19 +132,20 @@ export default function MessagesPage() {
     };
     setMessages((prev) => [...prev, tempMsg]);
 
-    // Update the last message preview in the sidebar
-    setConversations((prev) =>
-      prev.map((conv) => {
-        const convId = conv.id;
-        if (convId === recipientId) {
-          return {
-            ...conv,
-            lastMessage: `You: ${messageText}`,
-          };
-        }
-        return conv;
-      }),
-    );
+    // Update the last message preview in the sidebar and move conversation to the top
+    setConversations((prev) => {
+      const currentConv = prev.find((conv) => conv.id === recipientId);
+      const remainingConvs = prev.filter((conv) => conv.id !== recipientId);
+
+      if (!currentConv) return prev;
+
+      const updatedConv = {
+        ...currentConv,
+        lastMessage: `You: ${messageText}`,
+      };
+
+      return [updatedConv, ...remainingConvs];
+    });
     try {
       await api.sendMessage(recipientId, messageText);
       const updatedHistory = await api.fetchMessages(recipientId);
