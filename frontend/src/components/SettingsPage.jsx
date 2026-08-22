@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 
 import { api } from "../services/api";
+import { useApp } from "../context/useApp";
 
 /**
  * SettingsPage Component
  * Handles owner & dog profile information, photo uploads, and app preferences
  */
 export default function SettingsPage() {
+  // Lets other components (e.g. ProfileSidebar) know the profile changed
+  const { refreshProfile } = useApp();
   // Owner State
   const [ownerName, setOwnerName] = useState("");
   const [ownerAge, setOwnerAge] = useState(25);
@@ -51,6 +54,20 @@ export default function SettingsPage() {
     }
     loadProfile();
   }, []);
+
+  // Release each temporary blob: preview once it is replaced by the server URL
+  useEffect(() => {
+    return () => {
+      if (ownerImgUrl.startsWith("blob:")) URL.revokeObjectURL(ownerImgUrl);
+    };
+  }, [ownerImgUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (dogImgUrl.startsWith("blob:")) URL.revokeObjectURL(dogImgUrl);
+    };
+  }, [dogImgUrl]);
+
   /**
    * Submits updated profile and preference data to the API
    */
@@ -60,11 +77,14 @@ export default function SettingsPage() {
       setLoading(true);
       setStatusMessage("");
       if (ownerFile) {
-        await api.uploadOwnerPhoto(ownerFile);
+        // Use the URL the server just saved instead of keeping the local blob preview
+        const uploaded = await api.uploadOwnerPhoto(ownerFile);
+        if (uploaded?.photoUrl) setOwnerImgUrl(uploaded.photoUrl);
         setOwnerFile(null);
       }
       if (dogFile) {
-        await api.uploadDogPhoto(dogFile);
+        const uploaded = await api.uploadDogPhoto(dogFile);
+        if (uploaded?.dogPhotoUrl) setDogImgUrl(uploaded.dogPhotoUrl);
         setDogFile(null);
       }
       const data = {
@@ -78,6 +98,7 @@ export default function SettingsPage() {
       };
       const response = await api.updateProfile(data);
       if (response) {
+        refreshProfile();
         setStatusMessage("Profile updated successfully! ✨");
       }
     } catch (err) {

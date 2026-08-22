@@ -10,7 +10,7 @@ export default function ProfileSidebar() {
     const [loading, setLoading] = useState(true);
     const [name, setName] = useState('');
     const [dogName, setDogName] = useState('');
-    const {logout , setActiveTab} = useApp();
+    const {logout , setActiveTab, profileVersion} = useApp();
 
     useEffect(() => {
         const loadUser = async () => {
@@ -31,7 +31,7 @@ export default function ProfileSidebar() {
         };
 
         loadUser();
-    }, []);
+    }, [profileVersion]);
 
     if (loading) {
         return <div style={styles.loading}>Loading sign-ups...</div>;

@@ -12,6 +12,13 @@ services:
       - zuzdog_pg_data:/var/lib/postgresql/data
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/init-postgresql.sql:/docker-entrypoint-initdb.d/1-init-postgresql.sql
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/mock-data.sql:/docker-entrypoint-initdb.d/2-mock-data.sql
+    # The backend runs spring.sql.init on startup, so it must not boot before
+    # Postgres accepts connections. The backend waits on this check.
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d zuzdog']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 # container for each of us so we could run the activemq 
   message-broker:
     image: apache/activemq-classic:5.18.3
@@ -20,5 +27,46 @@ services:
       - '61616:61616'
       - '8161:8161'
 
+  # The two services below run the whole app in containers, so it works without
+  # a local JDK or Node. They are optional: `docker compose up -d db message-broker`
+  # still starts infrastructure only, exactly as before.
+  #
+  # Their real value is that the frontend here runs behind the SAME nginx image
+  # Railway uses, so routing bugs surface locally instead of in production.
+  backend:
+    build: ./backend/zuzdog-backend
+    container_name: zuzdog-backend
+    depends_on:
+      db:
+        condition: service_healthy
+      message-broker:
+        condition: service_started
+    environment:
+      # Service names, not localhost: each container is its own host on the
+      # compose network, so 'localhost' would point at the backend itself.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/zuzdog
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://message-broker:61616
+      APP_UPLOAD_DIR: /app/uploads
+    ports:
+      - '8080:8080'
+    volumes:
+      # Named volume so uploaded photos survive a rebuild, the same way
+      # zuzdog_pg_data keeps the database. On Railway this is a mounted volume.
+      - zuzdog_uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: zuzdog-frontend
+    depends_on:
+      - backend
+    environment:
+      # nginx proxies /api, /auth and /uploads here (see frontend/nginx.conf)
+      BACKEND_URL: http://backend:8080
+    ports:
+      - '5173:80'
+
 volumes:
   zuzdog_pg_data:
+  zuzdog_uploads:

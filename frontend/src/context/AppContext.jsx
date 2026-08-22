@@ -17,6 +17,9 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState("map");
+  // Bumped after a profile save so components showing profile data refetch
+  const [profileVersion, setProfileVersion] = useState(0);
+  const refreshProfile = () => setProfileVersion((v) => v + 1);
 
   // Strict boolean indicating user authentication status
   const isAuthenticated = !!token;
@@ -84,6 +87,8 @@ export const AppProvider = ({ children }) => {
         setActiveTab,
         notifications,
         markAsRead,
+        profileVersion,
+        refreshProfile,
       }}
     >
       {children}
