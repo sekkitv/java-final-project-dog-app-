@@ -30,7 +30,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    // GET /api/messages/conversations — one summary row per conversation partner
+    // GET /api/messages/conversations - one summary row per conversation partner
     // (partner id, username, last message, last time, unread proxy count).
     @GetMapping("/api/messages/conversations")
     public List<ConversationSummary> getConversations(HttpServletRequest request) {
@@ -38,7 +38,7 @@ public class MessageController {
         return messageService.getConversationSummaries(userId);
     }
 
-    // GET /api/messages/with/{otherUserId} — the full thread with one partner,
+    // GET /api/messages/with/{otherUserId} - the full thread with one partner,
     // returned in chronological order (oldest first).
     @GetMapping("/api/messages/with/{otherUserId}")
     public List<ChatMessage> getThread(HttpServletRequest request, @PathVariable long otherUserId) {
@@ -46,7 +46,7 @@ public class MessageController {
         return messageService.getThread(userId, otherUserId);
     }
 
-    // POST /api/messages/with/{otherUserId} — send a message to one partner.
+    // POST /api/messages/with/{otherUserId} - send a message to one partner.
     // Returns 201 on success. If the two users are not matched, the service
     // throws ApiException(FORBIDDEN) which GlobalExceptionHandler turns into 403.
     @PostMapping("/api/messages/with/{otherUserId}")

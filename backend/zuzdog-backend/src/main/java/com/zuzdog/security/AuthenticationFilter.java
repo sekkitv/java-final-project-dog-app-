@@ -10,27 +10,18 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * AuthenticationFilter is the single gate that protects every /api/** endpoint.
+ * the one gate in front of every /api/** endpoint.
  *
- * What it is, framework-wise:
- *   We extend OncePerRequestFilter (from spring-web), which is a Servlet Filter
- *   guaranteed to run exactly once per request even with async dispatches and
- *   forwards. Spring Boot auto-registers any Filter that is a @Component bean
- *   into the embedded Tomcat filter chain  so we don't need to declare a
- *   FilterRegistrationBean, define a SecurityFilterChain, or pull in
- *   spring-boot-starter-security. This is the "custom security" approach the
- *   project plan mandates.
+ * we extend OncePerRequestFilter from spring-web, which runs once per request.
+ * spring boot picks up any Filter that is a @Component and puts it in the
+ * chain by itself, so we do not need spring-boot-starter-security here. this
+ * is the custom security the project plan asks for.
  *
- * Why request attribute and not Spring's SecurityContextHolder:
-
- * Note on once-per-request:
- *   OncePerRequestFilter stores a request attribute to make sure doFilterInternal
- *   isn't called twice for the same request. We don't manage that ourselves —
- *   the base class does.
+ * the base class also makes sure doFilterInternal is not called twice for the
+ * same request, we do not handle that ourselves.
  */
 
-// @Component makes Spring detect it during component scan and register it as a
-// servlet Filter. That registration is what puts it in the request chain.
+// @Component is what makes spring find this class and register it as a filter
 @org.springframework.stereotype.Component
 public class AuthenticationFilter extends OncePerRequestFilter {
 
@@ -45,12 +36,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Paths that must NOT require a token.
-     *   /auth/**  — register and login obviously can't require a token yet.
-     *   /health   — basic  check 
-     *   /error    — Spring routes failed requests here; protecting it produces
-     *               confusing double-401 responses, so we skip it.
-     *   /favicon.ico — browsers ask for this unconditionally; a 401 noise.
+     * paths that do not need a token.
+     *   /auth/**     - register and login, you have no token yet
+     *   /health      - basic check
+     *   /error       - spring sends failed requests here, guarding it gives a
+     *                  confusing second 401
+     *   /favicon.ico - the browser always asks for it, a 401 is just noise
      */
 
 
@@ -72,15 +63,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Pull the Authorization header. Per RFC 7235 it's case-insensitive in
-        // name, case-sensitive in the scheme token ("Bearer"), so we read with
-        // getHeader (transparent) and compare "Bearer" with startsWith on a
-        // canonical prefix. We tolerate any whitespace after "Bearer".
+        // read the Authorization header. the header name is not case sensitive
+        // but "Bearer" is, so we check it with startsWith
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
-            // No header or wrong scheme → not authenticated. We STOP here so
-            // the protected controller never executes.
+            // no header or wrong type, so we stop here and the controller
+            // never runs
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                     "Missing or invalid Authorization header");
             return;

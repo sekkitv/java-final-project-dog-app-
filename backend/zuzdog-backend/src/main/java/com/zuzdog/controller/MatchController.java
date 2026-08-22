@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// REST endpoint for matches. Lives under /api/** so the AuthenticationFilter runs
-// and sets the authenticated user id on the request - same pattern as every
-// other controller in this app.
+// REST endpoint for matches. under /api/** so the filter runs and puts the
+// user id on the request, same as the other controllers
 @RestController
 public class MatchController {
 
@@ -21,8 +20,8 @@ public class MatchController {
         this.matchService = matchService;
     }
 
-    // GET /api/matches — every match for the caller, newest first, flattened to
-    // "the other person" (userId/username/photoUrl/matchedAt).
+    // GET /api/matches - all matches for the user, newest first, with the
+    // other person's id, name and photo
     @GetMapping("/api/matches")
     public List<MatchSummaryResponse> getMatches(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);

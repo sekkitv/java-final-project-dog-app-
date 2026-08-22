@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-// Data access for the hangout_participants junction table.
-// (hangout_id, user_id) is the natural PK, so add() uses ON CONFLICT DO NOTHING to stay
-// idempotent  signing up twice is a no-op rather than an error.
+// data access for the hangout_participants table.
+// (hangout_id, user_id) is the primary key, so add() uses ON CONFLICT DO
+// NOTHING and signing up twice does nothing instead of failing.
 @Repository
 public class HangoutParticipantDao {
 
@@ -18,8 +18,8 @@ public class HangoutParticipantDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // sign a user up for a hangout. returns the number of affected rows (1 on first signup,
-    // 0 if they were already signed up). idempotent via ON CONFLICT DO NOTHING.
+    // sign a user up. returns 1 the first time and 0 if they were already in,
+    // thanks to ON CONFLICT DO NOTHING
     public int add(long hangoutId, long userId) {
         String sql = """
                 INSERT INTO hangout_participants (hangout_id, user_id)
@@ -35,7 +35,7 @@ public class HangoutParticipantDao {
         return jdbcTemplate.update(sql, hangoutId, userId);
     }
 
-    // how many users are signed up for a hangout — used to check the DoD "count increases".
+    // how many users are signed up for a hangout
     public int countByHangout(long hangoutId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM hangout_participants WHERE hangout_id = ?",
@@ -43,8 +43,8 @@ public class HangoutParticipantDao {
         return count != null ? count : 0;
     }
 
-    // is this user among the participants of this hangout — used to fill isUserSignedUp
-    // if we ever need it outside the aggregate query in HangoutDao.
+    // is this user signed up for this hangout. HangoutDao already gets this in
+    // its big query, this is for when we need it on its own
     public boolean isParticipant(long hangoutId, long userId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM hangout_participants WHERE hangout_id = ? AND user_id = ?",
@@ -52,7 +52,7 @@ public class HangoutParticipantDao {
         return count != null && count > 0;
     }
 
-    // look up who organized a hangout — used later (Step 2.6) to notify the organizer on RSVP.
+    // who created the hangout, so we can notify them when someone signs up
     public Optional<Long> findOrganizerUserId(long hangoutId) {
         List<Long> rows = jdbcTemplate.queryForList(
                 "SELECT organizer_user_id FROM hangouts WHERE hangout_id = ?",
@@ -60,8 +60,8 @@ public class HangoutParticipantDao {
         return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
     }
 
-    // all participant user-ids for a hangout, in insert order (which is signup order).
-    // used by NotificationService.notifyHangoutJoin to fan out a HANGOUT_JOIN notification to
+    // all the user ids signed up for a hangout, in signup order.
+    // NotificationService uses it to send everyone a HANGOUT_JOIN notification
     public List<Long> findParticipantUserIds(long hangoutId) {
         return jdbcTemplate.queryForList(
                 "SELECT user_id FROM hangout_participants WHERE hangout_id = ? ORDER BY signed_up_at",

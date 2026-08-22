@@ -4,7 +4,7 @@ import java.time.Instant;
 
 // mirrors one row of the hangouts table plus two computed fields the API returns:
 //   participantCount  -> how many users signed up (COUNT over hangout_participants)
-//   isUserSignedUp   -> whether the requesting user is among the participants
+//   isUserSignedUp   -> is this user signed up
 // both computed fields are filled in by HangoutDao, not stored on the row.
 public class Hangout {
 

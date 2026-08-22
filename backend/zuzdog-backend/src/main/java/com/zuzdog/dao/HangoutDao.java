@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// Data access for the hangouts table. SimpleJdbcInsert is used for inserts so we get back
-// the generated hangout_id, exactly like MessageDao does for messages.
-// findAll / findById return the same row PLUS two computed fields:
+// data access for the hangouts table. we insert with SimpleJdbcInsert to get
+// the new hangout_id back, same as MessageDao does.
+// findAll and findById also return two extra fields:
 // participant_count  - COUNT over hangout_participants
-// is_user_signed_up - whether the requesting user is among them
-// those are computed with a LEFT JOIN + an EXISTS subquery bound to a single user id.
+// is_user_signed_up  - is this user one of them
+// both come from a LEFT JOIN and an EXISTS subquery for that user
 @Repository
 public class HangoutDao {
 
@@ -41,8 +41,8 @@ public class HangoutDao {
         return h;
     };
 
-    // the base SELECT used by findAll and findById. the ? bound for is_user_signed_up is the
-    // requesting user id. the GROUP BY collapses the LEFT JOIN back to one row per hangout.
+    // the base SELECT for findAll and findById. the ? in is_user_signed_up is
+    // the user id. the GROUP BY turns the LEFT JOIN back into one row per hangout.
     private static final String SELECT_WITH_STATS = """
             SELECT h.hangout_id, h.organizer_user_id, h.title, h.description, h.organizer_name,
                    h.latitude, h.longitude, h.event_time, h.activity_type, h.created_at,
@@ -86,7 +86,7 @@ public class HangoutDao {
     }
 
     // all hangouts, newest first, each enriched with participant_count and is_user_signed_up
-    // for the given requesting user.
+    // for that user.
     public List<Hangout> findAll(long userId) {
         String sql = SELECT_WITH_STATS + " ORDER BY h.created_at DESC";
         return jdbcTemplate.query(sql, HANGOUT_ROW_MAPPER, userId); //the 3rd args is for the ? paramater in SQL query
@@ -118,9 +118,9 @@ public class HangoutDao {
         return jdbcTemplate.query(SELECT_SIGNED_UP, HANGOUT_ROW_MAPPER, userId);
     }
 
-    // deletes every hangout whose event_time has passed. event_time IS NULL means an
-    // "always-open spot" (water bowl, poop bag station) and is never deleted here.
-    // hangout_participants rows for these hangouts are removed automatically (ON DELETE CASCADE).
+    // deletes hangouts whose event_time has passed. a NULL event_time means a
+    // place that is always open, so we keep it.
+    // the participant rows go with them because of ON DELETE CASCADE
     public int deleteExpired() {
         return jdbcTemplate.update(
                 "DELETE FROM hangouts WHERE event_time IS NOT NULL AND event_time < NOW()");

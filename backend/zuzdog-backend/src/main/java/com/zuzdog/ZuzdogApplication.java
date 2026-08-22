@@ -10,9 +10,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 // We also use the @ConfigurationPropertiesScan annotation to scan for configuration properties classes in the specified package.
 //
-// @EnableScheduling turns on support for @Scheduled bean methods. We need it so
-// SessionService.purgeExpired() can run in the background and sweep expired
-// sessions. Without this annotation @Scheduled methods are silently ignored.
+// @EnableScheduling turns on @Scheduled methods. we need it so
+// SessionService.purgeExpired() runs in the background. without it the
+// @Scheduled methods just never run.
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableScheduling

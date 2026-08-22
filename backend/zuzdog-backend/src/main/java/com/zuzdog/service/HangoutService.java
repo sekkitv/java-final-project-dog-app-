@@ -52,7 +52,7 @@ public class HangoutService {
                 .toList();
     }
 
-    // POST /api/hangouts — create a new hangout 
+    // POST /api/hangouts - create a new hangout 
    
     public HangoutResponse createHangout(long organizerId, CreateHangoutRequest request) {
         Optional<User> organizer = userDao.findById(organizerId);
@@ -85,7 +85,7 @@ public class HangoutService {
         return toResponse(created.get());
     }
 
-    // POST /api/hangouts/{id}/signup — add the user to the participant list 
+    // POST /api/hangouts/{id}/signup - add the user to the participant list 
 
     public HangoutResponse signup(long hangoutId, long userId) {
         Optional<Hangout> existing = hangoutDao.findById(hangoutId, userId);
@@ -106,7 +106,7 @@ public class HangoutService {
         return toResponse(result);
     }
 
-    // DELETE /api/hangouts/{id}/signup — remove the requesting user from the list
+    // DELETE /api/hangouts/{id}/signup - remove the user from the list
     public HangoutResponse cancelSignup(long hangoutId, long userId) {
         // make sure the hangout itself exists before touching signups
         Optional<Hangout> existing = hangoutDao.findById(hangoutId, userId);
@@ -122,7 +122,7 @@ public class HangoutService {
         return toResponse(result);
     }
 
-    // GET /api/hangouts/mine — every hangout the requesting user is signed up for not all hangouts 
+    // GET /api/hangouts/mine - every hangout the user is signed up for not all hangouts 
     public List<HangoutResponse> getUserHangouts(long userId) {
         // same shape as getAllHangouts() but  filtered DAO query
         

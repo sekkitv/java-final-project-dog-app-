@@ -13,7 +13,7 @@ import java.util.List;
 //  logic  for messaging.
 // Enforces that messages can only be sent between matched users.
 // If sender and receiver are NOT matched we throw ApiException(FORBIDDEN) which
-// GlobalExceptionHandler turns into an HTTP 403 — that is the message gate.
+// GlobalExceptionHandler turns into an HTTP 403 - that is the message gate.
 
 @Service
 public class MessageService {

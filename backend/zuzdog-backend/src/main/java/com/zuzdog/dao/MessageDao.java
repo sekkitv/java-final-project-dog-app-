@@ -68,19 +68,18 @@ public class MessageDao {
         return jdbcTemplate.query(sql, MESSAGE_ROW_MAPPER, userA, userB, userB, userA);
     }
 
-    // marks messages senderId sent to receiverId as read (called when receiverId fetches the thread)
+    // marks what senderId sent to receiverId as read, called when the thread is opened
     public int markThreadAsRead(long receiverId, long senderId) {
         return jdbcTemplate.update(
                 "UPDATE messages SET read_at = NOW() WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL",
                 receiverId, senderId);
     }
 
-    // One summary row per conversation partner for the conversation list screen.
-    // A single query that:
-    //   - uses DISTINCT ON (other_user_id) to pick the latest message per partner
-    //   - joins users to get the partner's username
-    //   - LEFT JOINs a subquery counting unread messages (read_at IS NULL) received from each partner
-    // Ordered by most recent first.
+    // one row per chat partner for the conversation list. one query that:
+    //   - DISTINCT ON picks the newest message per partner
+    //   - joins users for the partner name
+    //   - LEFT JOIN counts the unread ones (read_at IS NULL)
+    // newest first
     public List<ConversationSummary> findConversationSummaries(long userId) {
         String sql = """
                 SELECT

@@ -11,14 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// REST endpoints for notifications. Both routes sit under /api/** so the
-// AuthenticationFilter runs and sets the authenticated user id on the request
-// we read it via the public constant on AuthenticationFilter, the same pattern used by
-// HangoutController / ProfileController / FeedController.
+// REST endpoints for notifications. both are under /api/** so the filter runs
+// and puts the user id on the request, we read it from the constant on
+// AuthenticationFilter like the other controllers do.
 //
-// The controller never touches NotificationDao directly — it goes through
-// NotificationService, which keeps the service-as-controller-boundary convention used
-// across the rest of the app.
+// this controller does not use NotificationDao, it goes through
+// NotificationService like the rest of the app
 @RestController
 public class NotificationController {
 

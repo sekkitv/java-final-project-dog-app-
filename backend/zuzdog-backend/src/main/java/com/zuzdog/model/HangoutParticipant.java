@@ -3,7 +3,7 @@ package com.zuzdog.model;
 import java.time.Instant;
 
 // mirrors one row of the hangout_participants junction table.
-// (hangout_id, user_id) is the natural primary key — a user can only sign up once per hangout.
+// (hangout_id, user_id) is the natural primary key - a user can only sign up once per hangout.
 public class HangoutParticipant {
 
     private long hangoutId;

@@ -46,7 +46,7 @@ public class HangoutController {
         return hangoutService.createHangout(userId, body);
     }
 
-    // Sign the requesting user up for a hangout. Idempotent: signing up twice is a no-op
+    // sign the user up for a hangout. signing up twice does nothing
     // and still returns the hangout with the current participantCount.
     @PostMapping("/api/hangouts/{id}/signup")
     public HangoutResponse signup(HttpServletRequest request, @PathVariable long id) {
@@ -54,15 +54,15 @@ public class HangoutController {
         return hangoutService.signup(id, userId);
     }
 
-    // Cancel the requesting user's signup. Idempotent: cancelling twice (or when
-    // never signed up) is a no-op and still returns the current hangout state.
+    // cancel the user's signup. cancelling twice does nothing and still
+    // returns the hangout
     @DeleteMapping("/api/hangouts/{id}/signup")
     public HangoutResponse cancelSignup(HttpServletRequest request, @PathVariable long id) {
         Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);
         return hangoutService.cancelSignup(id, userId);
     }
 
-    // List only the hangouts the requesting user is signed up for.
+    // only the hangouts the user is signed up for
     @GetMapping("/api/hangouts/mine")
     public List<HangoutResponse> getMyHangouts(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute(AuthenticationFilter.AUTHENTICATED_USER_ID_ATTR);

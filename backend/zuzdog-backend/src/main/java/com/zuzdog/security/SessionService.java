@@ -9,29 +9,20 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * SessionService is our custom, in-memory session store.
+ * our own session store, kept in memory.
  *
- * Why we have this at all:
- *   we authenticate with our own Bearer-token system: a logged-in user gets a UUID token, and every
- *   protected request must carry it in the "Authorization: Bearer <token>" header.
+ * a user who logs in gets a UUID token and sends it back on every protected
+ * request as "Authorization: Bearer <token>".
  *
- *   Where does the token live? We can't put it in the database without a
- *   sessions table (the schema has none), so we keep sessions in RAM inside a
- *   ConcurrentHashMap. That makes login/logout fast and stateless-ish, but it
- *   means tokens are lost on restart
- * 
- *   @Scheduled sweeper thread calls purgeExpired(). ConcurrentHashMap handles
- *   that safely without us needing synchronized blocks.
+ * there is no sessions table in the schema, so we keep them in a
+ * ConcurrentHashMap instead. that is fast and needs no synchronized blocks,
+ * but the tokens are gone after a restart.
  *
- * Expiry:
- *   Each session lives for sessionTtlMinutes (config in application.properties,
- *   pulled from SecurityProperties, default 1440 = 24h). Two layers of cleanup:
- *     1. Lazy: resolveUserId() rejects and removes any token that is past its
- *        expiry the moment someone tries to use it.
- *     2. Active: @Scheduled purgeExpired() sweeps the map once a minute and
- *        drops expired entries so memory doesn't grow forever.
- *   The @Scheduled method only runs if Spring scheduling is enabled, which is
- *   why we added @EnableScheduling on ZuzdogApplication.
+ * a session lives for sessionTtlMinutes (see application.properties, default
+ * is 1440 = 24h). we clean up in two ways:
+ *   1. resolveUserId() drops a token the moment someone uses it after it expired
+ *   2. purgeExpired() runs every minute so the map does not keep growing
+ * the second one needs @EnableScheduling, which is on ZuzdogApplication.
  */
 @Service
 public class SessionService {
@@ -44,12 +35,9 @@ public class SessionService {
     }
 
     /**
-     * Create a brand-new session for a user and return the opaque token the
-     * We use UUID.randomUUID() because:
-     *   - it's cryptographically random enough for session tokens (122 bits of
-     *     entropy) and collision-free in practice,
-     *   - it needs no DB write,
-     *   - its String form is URL/header-safe.
+     * makes a new session for a user and returns the token.
+     * we use UUID.randomUUID() because it is random enough for a token, it
+     * needs no DB write, and it is safe to put in a header.
      */
     public String createSession(long userId) {
         String token = UUID.randomUUID().toString();
@@ -84,11 +72,10 @@ public class SessionService {
     }
 
     /**
-     * Background sweep that drops every session whose expiry has passed.
-     *
-     * fixedDelay = 60_000 means "wait 60s after the previous run ends before
-     * this is the "smart" cleanup that keeps the map from growing forever.
-     */ 
+     * removes every session that already expired.
+     * fixedDelay = 60_000 means it waits 60s after the last run before going
+     * again, so the map does not keep growing.
+     */
     @Scheduled(fixedDelay = 60_000L)
     public void purgeExpired() {
         Instant now = Instant.now();

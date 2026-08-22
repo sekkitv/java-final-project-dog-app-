@@ -2,14 +2,13 @@ package com.zuzdog.dto;
 
 import java.time.Instant;
 
-// One row of the conversation list screen (GET /api/messages/conversations).
-// Built by MessageDao in a single query joining messages <-> users:
-//   otherUserId     — the id of the partner we exchanged messages with
-//   otherUsername   — that partner's username
-//   lastMessage     — the body of the most recent message in the thread
-//   lastMessageTime — when that most recent message was sent
-//   unreadCount     — proxy: how many messages this user received from the partner
-//                     (no per-message read flag exists in the schema yet).
+// one row of the conversation list (GET /api/messages/conversations).
+// MessageDao builds it in one query that joins messages with users:
+//   otherUserId     - the other person in the chat
+//   otherUsername   - their username
+//   lastMessage     - the newest message in the thread
+//   lastMessageTime - when it was sent
+//   unreadCount     - how many of their messages are still unread
 public record ConversationSummary(
         long otherUserId,
         String otherUsername,

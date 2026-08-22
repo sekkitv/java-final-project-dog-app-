@@ -5,14 +5,14 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
-// Body of POST /api/hangouts.
+// body of POST /api/hangouts.
 // title is required (@NotBlank).
-// latitude/longitude are required 
-// description may be null — the DAO stores "" in that case.
-// eventTime may be null — an "always-open spot" has no scheduled time.
-// activityType may be null/blank — HangoutService defaults it to MEETUP.
-// organizerName is NOT part of the request: the service fills it from the authenticated
-// user`s row so the client cannot spoof another user`s name.
+// latitude/longitude are required
+// description can be null, the DAO stores "" then.
+// eventTime can be null, a place that is always open has no time.
+// activityType can be null or blank, HangoutService puts MEETUP.
+// organizerName is not in the request, the service takes it from the logged in
+// user so nobody can send someone else's name.
 public record CreateHangoutRequest(
         @NotBlank String title,
         @NotNull Double latitude,

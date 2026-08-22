@@ -82,7 +82,7 @@ public class DogDao {
         return key.longValue();
     }
 
-    // update editable dog fields, scoped to userId so a user can only edit their own dog
+    // update dog fields. the userId check means you can only edit your own dog
     public int updateProfile(long dogId, long userId, String dogName, String breed,
                               Integer dogAge, String traits, String description) {
         return jdbcTemplate.update(
@@ -91,7 +91,7 @@ public class DogDao {
                 dogName, breed, dogAge, traits, description, dogId, userId);
     }
 
-    // update the dog's photo url, scoped to userId so a user can only edit their own dog
+    // update the dog photo url. the userId check means you can only edit your own dog
     public int updatePhotoUrl(long dogId, long userId, String photoUrl) {
         return jdbcTemplate.update(
                 "UPDATE dogs SET photo_url = ?, updated_at = NOW() WHERE dog_id = ? AND user_id = ?",
