@@ -22,6 +22,10 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Tells the nginx entrypoint to export NGINX_LOCAL_RESOLVERS from
+# /etc/resolv.conf. nginx.conf needs it for its resolver directive; without
+# this flag the entrypoint script returns early and the variable stays unset.
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 ENV BACKEND_URL=http://127.0.0.1:8080
 ENV PORT=80
 
