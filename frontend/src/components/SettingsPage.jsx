@@ -8,7 +8,7 @@ import { useApp } from "../context/useApp";
  * Handles owner & dog profile information, photo uploads, and app preferences
  */
 export default function SettingsPage() {
-  // Lets other components (e.g. ProfileSidebar) know the profile changed
+  // Lets ProfileSidebar know the profile changed
   const { refreshProfile } = useApp();
   // Owner State
   const [ownerName, setOwnerName] = useState("");
@@ -55,7 +55,7 @@ export default function SettingsPage() {
     loadProfile();
   }, []);
 
-  // Release each temporary blob: preview once it is replaced by the server URL
+  // Release the temporary preview once the server URL replaces it
   useEffect(() => {
     return () => {
       if (ownerImgUrl.startsWith("blob:")) URL.revokeObjectURL(ownerImgUrl);
@@ -77,7 +77,7 @@ export default function SettingsPage() {
       setLoading(true);
       setStatusMessage("");
       if (ownerFile) {
-        // Use the URL the server just saved instead of keeping the local blob preview
+        // Show the URL the server saved, not the local preview
         const uploaded = await api.uploadOwnerPhoto(ownerFile);
         if (uploaded?.photoUrl) setOwnerImgUrl(uploaded.photoUrl);
         setOwnerFile(null);

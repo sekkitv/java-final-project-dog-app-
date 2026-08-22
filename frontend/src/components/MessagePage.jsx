@@ -25,10 +25,7 @@ export default function MessagesPage() {
   }, [messages]); 
 
   /**
-   * Polls the open chat every 3 seconds so messages the other user sends show
-   * up without switching tabs. The request is skipped while the tab is hidden,
-   * while a previous poll is still in flight, and while an optimistic message
-   * is on screen waiting for the server to confirm it.
+   * Polls the open chat every 3 seconds so new messages show up on their own
    */
   useEffect(() => {
     if (!selectedChat?.id) return;
@@ -38,23 +35,22 @@ export default function MessagesPage() {
     let inFlight = false;
 
     const pollInterval = setInterval(async () => {
-      // Hidden tab costs nothing, and never run two polls at once
+      // Skip while the tab is hidden or a previous poll is still running
       if (document.hidden || inFlight) return;
       inFlight = true;
       try {
         const history = await api.fetchMessages(targetId);
-        // The user may have switched chats while this request was in the air
+        // The user may have switched chats while this request was running
         if (cancelled || !history) return;
 
         setMessages((prevMessages) => {
           const lastShown = prevMessages[prevMessages.length - 1];
-          // An optimistic message is still pending; handleSendMessage owns the
-          // thread until the server answers
+          // Leave the thread alone while an unsent message is on screen
           if (lastShown && String(lastShown.messageId).startsWith("temp-")) {
             return prevMessages;
           }
-          // Compare the last id as well as the count, so a temp message being
-          // replaced by the real one is caught even though the length is equal
+          // Check the last id too, the count stays the same when a temp id
+          // is replaced by the real one
           const unchanged =
             history.length === prevMessages.length &&
             history[history.length - 1]?.messageId === lastShown?.messageId;
@@ -85,7 +81,7 @@ export default function MessagesPage() {
       }
     }, POLL_MS);
 
-    // Stop polling and ignore any in-flight reply when switching chats
+    // Stop polling and ignore a late reply when switching chats
     return () => {
       cancelled = true;
       clearInterval(pollInterval);
@@ -228,8 +224,8 @@ export default function MessagesPage() {
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      // Drop the optimistic message, otherwise it stays on screen forever and
-      // the poller keeps skipping this thread because of the pending temp id
+      // Remove the temp message, otherwise it stays on screen and the poll
+      // keeps skipping this thread
       setMessages((prev) => prev.filter((m) => m.messageId !== tempId));
     }
   };

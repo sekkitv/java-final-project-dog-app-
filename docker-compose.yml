@@ -12,8 +12,7 @@ services:
       - zuzdog_pg_data:/var/lib/postgresql/data
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/init-postgresql.sql:/docker-entrypoint-initdb.d/1-init-postgresql.sql
       - ./backend/zuzdog-backend/src/main/resources/db/schemas/mock-data.sql:/docker-entrypoint-initdb.d/2-mock-data.sql
-    # The backend runs spring.sql.init on startup, so it must not boot before
-    # Postgres accepts connections. The backend waits on this check.
+    # The backend runs spring.sql.init on startup so it must wait for this
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d zuzdog']
       interval: 5s
@@ -27,12 +26,10 @@ services:
       - '61616:61616'
       - '8161:8161'
 
-  # The two services below run the whole app in containers, so it works without
-  # a local JDK or Node. They are optional: `docker compose up -d db message-broker`
-  # still starts infrastructure only, exactly as before.
-  #
-  # Their real value is that the frontend here runs behind the SAME nginx image
-  # Railway uses, so routing bugs surface locally instead of in production.
+  # the two below run the whole app in containers, so no local JDK or node is
+  # needed. the frontend here uses the same nginx image as railway, which is how
+  # we test routing before deploying.
+  # `docker compose up -d db message-broker` still starts just the infra.
   backend:
     build: ./backend/zuzdog-backend
     container_name: zuzdog-backend
@@ -42,8 +39,7 @@ services:
       message-broker:
         condition: service_started
     environment:
-      # Service names, not localhost: each container is its own host on the
-      # compose network, so 'localhost' would point at the backend itself.
+      # service names, not localhost - each container is its own host here
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/zuzdog
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
@@ -52,8 +48,7 @@ services:
     ports:
       - '8080:8080'
     volumes:
-      # Named volume so uploaded photos survive a rebuild, the same way
-      # zuzdog_pg_data keeps the database. On Railway this is a mounted volume.
+      # keeps uploaded photos across rebuilds, same idea as zuzdog_pg_data
       - zuzdog_uploads:/app/uploads
 
   frontend:
