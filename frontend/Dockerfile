@@ -22,8 +22,8 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# The entrypoint only exports NGINX_LOCAL_RESOLVERS when this is set, and
-# nginx.conf needs it for the resolver directive.
+# Makes the entrypoint set NGINX_LOCAL_RESOLVERS, which nginx.conf
+# needs for its resolver line.
 ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
 ENV BACKEND_URL=http://127.0.0.1:8080
 ENV PORT=80

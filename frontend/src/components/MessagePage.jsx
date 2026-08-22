@@ -4,7 +4,7 @@ import { api } from "../services/api";
 const DEFAULT_AVATAR =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
 
-// How often an open chat re-checks the server for new messages.
+// How often an open chat checks for new messages
 const POLL_MS = 3000;
 
 /**
@@ -49,8 +49,8 @@ export default function MessagesPage() {
           if (lastShown && String(lastShown.messageId).startsWith("temp-")) {
             return prevMessages;
           }
-          // Check the last id too, the count stays the same when a temp id
-          // is replaced by the real one
+          // Check the last id too, the count is the same when a temp id
+          // turns into the real one
           const unchanged =
             history.length === prevMessages.length &&
             history[history.length - 1]?.messageId === lastShown?.messageId;
@@ -224,8 +224,7 @@ export default function MessagesPage() {
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      // Remove the temp message, otherwise it stays on screen and the poll
-      // keeps skipping this thread
+      // Remove the temp message, or it stays on screen and blocks the poll
       setMessages((prev) => prev.filter((m) => m.messageId !== tempId));
     }
   };
