@@ -3,6 +3,16 @@ import { api } from "../services/api";
 
 const DEFAULT_AVATAR =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+
+// Live-chat polling cadence. BASE is the steady-state interval; on repeated
+// failures the poller doubles up to MAX so a struggling backend gets a break.
+const BASE_POLL_MS = 3000;
+const MAX_POLL_MS = 24000;
+
+// Cheap fingerprint of a thread, used to skip re-rendering (and re-scrolling)
+// when a poll returns exactly what is already on screen.
+const signatureOf = (msgs) =>
+  `${msgs.length}:${msgs.length ? msgs[msgs.length - 1].messageId : ""}`;
 /**
  * MessagesPage Component
  * Manages conversation list and real-time chat interactions with matched users
@@ -14,6 +24,10 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  // Guards for the live poller below: skip a tick while a send is in flight,
+  // and remember the last thread we rendered so we only re-render on real change.
+  const sendingRef = useRef(false);
+  const threadSigRef = useRef("");
 
   // Auto scroll to the bottom of the chat when new messages arrive
   useEffect(() => {
@@ -89,6 +103,97 @@ export default function MessagesPage() {
   }, []);
 
   /**
+   * Updates the sidebar preview + unread badge for one conversation.
+   * Called only when a poll actually saw new messages, so the heavier
+   * conversation query is never part of the steady-state polling cost.
+   */
+  const refreshConversationPreviews = (otherUserId, history) => {
+    if (!history.length) return;
+    const last = history[history.length - 1];
+    const preview = last.sender === "me" ? `You: ${last.body}` : last.body;
+    setConversations((prev) => {
+      const current = prev.find((c) => c.id === otherUserId);
+      if (!current) return prev;
+      const rest = prev.filter((c) => c.id !== otherUserId);
+      return [{ ...current, lastMessage: preview }, ...rest];
+    });
+  };
+
+  /**
+   * Keeps the open chat live: polls the selected thread so messages the other
+   * user sends show up without switching tabs or re-opening the conversation.
+   *
+   * Four guards keep the request rate down:
+   *   1. Runs only while a conversation is actually open.
+   *   2. Pauses completely when the browser tab is hidden, and fetches once
+   *      immediately when it becomes visible again.
+   *   3. Schedules the next tick only after the previous one finishes, so a
+   *      slow response delays the next request instead of stacking on it.
+   *   4. Backs off on errors (3s -> 6s -> 12s -> 24s) and resets on the first
+   *      success, so a struggling backend is not hammered.
+   *
+   * An idle open chat therefore costs one cheap request every 3 seconds:
+   * GET /api/messages/with/{id}, which is a SELECT plus an UPDATE that matches
+   * zero rows once the thread is already read.
+   */
+  useEffect(() => {
+    if (!selectedChat) return;
+    const otherUserId = selectedChat.id;
+
+    let cancelled = false;
+    let timer = null;
+    let delay = BASE_POLL_MS;
+
+    const schedule = () => {
+      if (cancelled) return;
+      timer = setTimeout(tick, delay);
+    };
+
+    const tick = async () => {
+      if (cancelled) return;
+      // Hidden tab: skip the request; the visibility handler resumes polling
+      if (document.visibilityState !== "visible") return schedule();
+      // A send is mid-flight and refreshes the thread itself when it lands
+      if (sendingRef.current) return schedule();
+
+      try {
+        const history = await api.fetchMessages(otherUserId);
+        if (cancelled) return;
+        delay = BASE_POLL_MS;
+        if (history) {
+          const sig = signatureOf(history);
+          // Nothing new: leave state alone so the view does not re-scroll
+          if (sig !== threadSigRef.current) {
+            threadSigRef.current = sig;
+            setMessages(history);
+            refreshConversationPreviews(otherUserId, history);
+          }
+        }
+      } catch {
+        delay = Math.min(delay * 2, MAX_POLL_MS);
+      }
+      schedule();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        clearTimeout(timer);
+        delay = BASE_POLL_MS;
+        tick();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    schedule();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [selectedChat]);
+
+  /**
    * Handles conversation selection, marks it as read, and fetches chat history
    */
   const handleSelectConversation = async (conv) => {
@@ -104,6 +209,8 @@ export default function MessagesPage() {
       try {
         const history = await api.fetchMessages(targetId);
         if (history) {
+          // Seed the poller signature so its first tick is a no-op
+          threadSigRef.current = signatureOf(history);
           setMessages(history);
         }
       } catch (err) {
@@ -146,14 +253,19 @@ export default function MessagesPage() {
 
       return [updatedConv, ...remainingConvs];
     });
+    // Hold the poller off so it cannot overwrite the optimistic message
+    sendingRef.current = true;
     try {
       await api.sendMessage(recipientId, messageText);
       const updatedHistory = await api.fetchMessages(recipientId);
       if (updatedHistory) {
+        threadSigRef.current = signatureOf(updatedHistory);
         setMessages(updatedHistory);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
+    } finally {
+      sendingRef.current = false;
     }
   };
 
